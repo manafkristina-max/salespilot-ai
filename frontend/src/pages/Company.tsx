@@ -51,8 +51,8 @@ export default function CompanyPage() {
             if (!confirm(`Удалить «${c.name}» со всеми фактами, контактами и письмами?`)) return;
             try { await api.deleteCompany(id); toast("success", "Компания удалена"); nav("/leads"); } catch (e) { toast("error", (e as Error).message); }
           }}>Удалить</Button>
-          <Button icon={<FileSearch className="h-4 w-4" />} loading={busy === "research"} onClick={() => act("research", async () => (await api.research(id)).message)}>Research Agent</Button>
-          {lead && <Button variant="primary" icon={<RefreshCw className="h-4 w-4" />} loading={busy === "qualify"} onClick={() => act("qualify", async () => { const r = await api.qualify(lead.id); return `ICP Fit Score: ${r.score}/100`; })}>Пересчитать score</Button>}
+          <Button icon={<FileSearch className="h-4 w-4" />} loading={busy === "research"} onClick={() => act("research", async () => (await api.research(id)).message)}>Исследовать</Button>
+          {lead && <Button variant="primary" icon={<RefreshCw className="h-4 w-4" />} loading={busy === "qualify"} onClick={() => act("qualify", async () => { const r = await api.qualify(lead.id); return `Соответствие ICP: ${r.score}/100`; })}>Пересчитать оценку</Button>}
         </>} />
 
       {c.leads.length > 1 && (
@@ -68,13 +68,13 @@ export default function CompanyPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           {lead ? <ScoreCard lead={lead} /> : (
-            <Card title="ICP Fit Score"><Empty title="Компания не входит ни в одну кампанию" hint="Score рассчитывается относительно ICP кампании. Добавьте компанию в кампанию." action={<AttachButton companyId={id} onDone={reload} />} /></Card>
+            <Card title="Соответствие ICP"><Empty title="Компания не входит ни в одну кампанию" hint="Оценка считается относительно ICP кампании. Добавьте компанию в кампанию." action={<AttachButton companyId={id} onDone={reload} />} /></Card>
           )}
           {lead && Object.keys(lead.match).length > 0 && <MatchCard match={lead.match as Match} />}
 
           <Card title={`Факты и источники (${c.facts.length})`} bodyClass="p-0"
             actions={<Button size="sm" icon={<Plus className="h-3.5 w-3.5" />} onClick={() => setFactOpen(true)}>Добавить факт</Button>}>
-            {c.facts.length === 0 ? <Empty title="Фактов нет" hint={c.is_demo ? "В демо-датасете для этой компании нет фактов." : mode === "demo" ? "В Demo mode сайты не загружаются. Добавьте факт вручную со ссылкой на источник или включите live-исследование в .env." : "Запустите Research Agent или добавьте факт вручную."} /> : (
+            {c.facts.length === 0 ? <Empty title="Фактов нет" hint={c.is_demo ? "В демо-датасете для этой компании нет фактов." : mode === "demo" ? "В демо-режиме сайты не загружаются. Добавьте факт вручную со ссылкой на источник или включите исследование сайтов в .env." : "Нажмите «Исследовать» или добавьте факт вручную."} /> : (
               <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {c.facts.map((f) => (
                   <li key={f.id} className="px-4 py-3">
@@ -107,7 +107,7 @@ export default function CompanyPage() {
           </Card>
 
           {lead && (
-            <Card title="Outreach" actions={<>
+            <Card title="Письма" actions={<>
               <Button size="sm" icon={<CalendarPlus className="h-3.5 w-3.5" />} onClick={() => setMeetingOpen(true)}>Отметить встречу</Button>
               <Button size="sm" variant="primary" icon={<Sparkles className="h-3.5 w-3.5" />} loading={busy === "draft"}
                 onClick={() => act("draft", async () => {
@@ -119,7 +119,7 @@ export default function CompanyPage() {
                   nav(`/outreach/${e.id}`);
                 })}>Сгенерировать письмо</Button>
             </>} bodyClass="p-0">
-              {lead.emails.length === 0 && lead.meetings.length === 0 ? <Empty title="Писем пока нет" hint="Writer Agent подготовит черновик на основе фактов с источниками." /> : (
+              {lead.emails.length === 0 && lead.meetings.length === 0 ? <Empty title="Писем пока нет" hint="Агент-автор подготовит черновик на основе фактов с источниками." /> : (
                 <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
                   {lead.emails.map((e) => (
                     <li key={e.id}><Link to={`/outreach/${e.id}`} className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
@@ -175,10 +175,10 @@ export default function CompanyPage() {
 function ScoreCard({ lead }: { lead: Lead }) {
   const s = lead.score_detail as ScoreDetail;
   if (!s || s.score === undefined) {
-    return <Card title={`ICP Fit Score · ${lead.campaign_name}`}><Empty title="Score ещё не рассчитан" hint="Нажмите «Пересчитать score» или запустите агентов в кампании." /></Card>;
+    return <Card title={`Соответствие ICP · ${lead.campaign_name}`}><Empty title="Оценка ещё не рассчитана" hint="Нажмите «Пересчитать оценку» или запустите агентов в кампании." /></Card>;
   }
   return (
-    <Card title={<span className="flex items-center gap-2">ICP Fit Score · {lead.campaign_name} <StageBadge stage={lead.stage} /></span>}
+    <Card title={<span className="flex items-center gap-2">Соответствие ICP · {lead.campaign_name} <StageBadge stage={lead.stage} /></span>}
       actions={<span className="text-xs text-zinc-400">рассчитан {fmtDate(s.scored_at)}</span>}>
       <div className="flex flex-wrap items-center gap-6">
         <div>
@@ -224,7 +224,7 @@ function ScoreCard({ lead }: { lead: Lead }) {
 
 function MatchCard({ match }: { match: Match }) {
   return (
-    <Card title="Sales Agent: подбор продукта">
+    <Card title="Подбор продукта">
       <div className="flex items-center gap-2 text-sm">Рекомендуемый продукт: <Badge color="violet">{match.recommended_name || "—"}</Badge><span className="text-xs text-zinc-500">({match.reason})</span></div>
       <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{match.rationale}</p>
       <div className="mt-3 grid gap-2 sm:grid-cols-3">
@@ -271,7 +271,7 @@ function AddFactModal({ open, onClose, companyId, isDemo, onDone }: { open: bool
         <Field label="Тип"><select className="input" value={v.kind} onChange={(e) => setV({ ...v, kind: e.target.value })}><option value="pain">Боль</option><option value="signal">Сигнал спроса</option><option value="info">Информация</option><option value="tech">Технология</option></select></Field>
         <Field label="Утверждение *"><textarea className="textarea" rows={2} value={v.text} onChange={(e) => setV({ ...v, text: e.target.value })} /></Field>
         <Field label="Ссылка на источник *" hint="Без источника факт не принимается"><input className="input" placeholder="https://…" value={v.source_url} onChange={(e) => setV({ ...v, source_url: e.target.value })} /></Field>
-        <Field label="Фрагмент-доказательство" hint="Точная цитата со страницы — по ней Research Agent проверит факт"><input className="input" value={v.evidence} onChange={(e) => setV({ ...v, evidence: e.target.value })} /></Field>
+        <Field label="Фрагмент-доказательство" hint="Точная цитата со страницы: по ней агент-исследователь проверит факт"><input className="input" value={v.evidence} onChange={(e) => setV({ ...v, evidence: e.target.value })} /></Field>
       </div>
     </Modal>
   );

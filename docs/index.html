@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SalesPilot AI — продуктовый кейс</title>
-<meta name="description" content="AI-native B2B Sales Development: объяснимый скоринг лидов, письма с проверяемыми утверждениями и ручное согласование каждой отправки. Продуктовый кейс и рабочий MVP.">
-<meta property="og:title" content="SalesPilot AI — AI-SDR, который не выдумывает">
-<meta property="og:description" content="Продуктовый кейс и open-source MVP: 7 агентов, объяснимый ICP Fit Score, 0 писем без одобрения.">
+<title>SalesPilot AI — ИИ-агент для B2B-продаж</title>
+<meta name="description" content="ИИ-агент для B2B-продаж: объяснимая оценка лидов, письма с проверяемыми утверждениями и ручное согласование каждой отправки. Продуктовый кейс и рабочий прототип.">
+<meta property="og:title" content="SalesPilot AI — ИИ-агент для B2B-продаж, который не выдумывает">
+<meta property="og:description" content="Продуктовый кейс и рабочий прототип с открытым кодом: 7 агентов, объяснимая оценка лидов, ни одного письма без одобрения.">
 <meta property="og:image" content="screenshots/dashboard.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234f46e5'/><path d='M7 21l6-10 5 7 2.5-3.5L25 21' stroke='white' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -142,19 +142,19 @@ footer .wrap{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap}
 
 <header class="hero" id="top">
   <div class="wrap">
-    <span class="eyebrow">Product case · AI-native B2B Sales Development</span>
-    <h1>AI-SDR, который <em>не выдумывает</em></h1>
-    <p class="lead">SalesPilot находит и квалифицирует B2B-клиентов для SaaS в e-commerce и готовит персонализированные письма. Каждый балл скоринга объяснён, каждое утверждение в письме ссылается на источник, а отправка возможна только после одобрения человеком.</p>
+    <span class="eyebrow">Продуктовый кейс · ИИ-агент для B2B-продаж</span>
+    <h1>ИИ-агент для B2B-продаж, который <em>не выдумывает</em></h1>
+    <p class="lead">SalesPilot помогает менеджеру по продажам SaaS-решений для e-commerce: находит подходящие компании, оценивает их и готовит персональные письма. Каждый балл оценки объяснён, каждое утверждение в письме ссылается на источник, а отправка возможна только после одобрения человеком.</p>
     <div class="cta">
       <a class="btn primary" href="#run">Запустить за 2 минуты</a>
       <a class="btn" href="#tour">Посмотреть продукт</a>
     </div>
     <div class="chips">
-      <span><b>7</b> агентов</span><span><b>5</b> факторов скоринга</span><span><b>0</b> писем без одобрения</span><span><b>20</b> автотестов</span><span>Open source · MIT</span>
+      <span><b>7</b> агентов</span><span><b>5</b> факторов оценки</span><span><b>0</b> писем без одобрения</span><span><b>20</b> автотестов</span><span>Открытый код · MIT</span>
     </div>
     <div class="frame reveal">
-      <div class="bar"><span></span><span></span><span></span><small>127.0.0.1:8000 — Dashboard</small></div>
-      <img src="screenshots/dashboard.png" alt="Dashboard SalesPilot AI: метрики воронки, статусы агентов, разделение реальных и демо-данных" width="2880" height="1800" fetchpriority="high">
+      <div class="bar"><span></span><span></span><span></span><small>127.0.0.1:8000 — Обзор</small></div>
+      <img src="screenshots/dashboard.png" alt="Обзор SalesPilot AI: метрики воронки, статусы агентов, разделение реальных и демо-данных" width="2880" height="1800" fetchpriority="high">
     </div>
   </div>
 </header>
@@ -164,11 +164,11 @@ footer .wrap{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap}
     <div class="head reveal">
       <div class="kicker">Проблема</div>
       <h2>Outbound в B2B упирается не в скорость, а в доверие</h2>
-      <p class="sub">SDR, продающий Rich Content, Where-to-Buy и PIM брендам, тратит часы на ресёрч, а AI-инструменты, которые это ускоряют, слишком часто ошибаются там, где ошибка дороже всего.</p>
+      <p class="sub">Менеджер, который продаёт брендам Rich Content, Where-to-Buy и PIM, тратит часы на ресёрч, а AI-инструменты, которые это ускоряют, слишком часто ошибаются там, где ошибка дороже всего.</p>
     </div>
     <div class="grid g3">
-      <div class="card reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Ручной ресёрч</h3><p>Ассортимент, маркетплейсы, «Где купить», стек сайта, вакансии собираются вручную по каждому аккаунту.</p></div>
-      <div class="card reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></div><h3>Субъективная квалификация</h3><p>Разные SDR по-разному оценивают один аккаунт, и руководитель не видит, почему лид в работе.</p></div>
+      <div class="card reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Ручной ресёрч</h3><p>Ассортимент, маркетплейсы, «Где купить», стек сайта, вакансии собираются вручную по каждой компании.</p></div>
+      <div class="card reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></div><h3>Субъективная квалификация</h3><p>Разные менеджеры по-разному оценивают одну и ту же компанию, и руководитель не видит, почему лид в работе.</p></div>
       <div class="card reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div><h3>AI, которому нельзя верить</h3><p>Придуманные факты и имена, отправка без контроля, «встречи», которые нельзя проверить. Это бьёт по репутации домена и бренда.</p></div>
     </div>
   </div>
@@ -179,10 +179,10 @@ footer .wrap{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap}
     <div class="kicker">Продуктовая ставка</div>
     <p class="quote" style="margin-top:14px">Доверие вместо автопилота: AI берёт на себя рутину, но каждое его действие прозрачно и обратимо до момента, пока человек не нажал «Отправить».</p>
     <div class="grid g4" style="margin-top:40px">
-      <div class="card"><span class="tag green">Объяснимость</span><p style="margin-top:12px">Score из 5 факторов с текстом «почему», уверенностью и списком недостающих данных.</p></div>
+      <div class="card"><span class="tag green">Объяснимость</span><p style="margin-top:12px">Оценка из 5 факторов с текстом «почему», уверенностью и списком недостающих данных.</p></div>
       <div class="card"><span class="tag green">Проверяемость</span><p style="margin-top:12px">Утверждения в письме помечены [n] и ведут на источник с датой проверки.</p></div>
       <div class="card"><span class="tag green">Человек в контуре</span><p style="margin-top:12px">Ручное одобрение каждого письма заблокировано в коде, плюс подтверждение и kill switch.</p></div>
-      <div class="card"><span class="tag amber">Демо ≠ реальность</span><p style="margin-top:12px">Демо и симуляции никогда не попадают в реальные метрики. ROI не рисуется.</p></div>
+      <div class="card"><span class="tag amber">Демо ≠ реальность</span><p style="margin-top:12px">Демо-данные и симуляции никогда не попадают в реальные метрики. ROI не придумывается.</p></div>
     </div>
   </div>
 </section>
@@ -192,17 +192,17 @@ footer .wrap{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap}
     <div class="head reveal">
       <div class="kicker">Как работает</div>
       <h2>Семь агентов и одна точка контроля</h2>
-      <p class="sub">Агенты детерминированы и логируют каждый запуск. Провайдеры (LLM, почта, ресёрч) стоят за общими интерфейсами: mock по умолчанию, live включается конфигурацией.</p>
+      <p class="sub">Агенты детерминированы и логируют каждый запуск. Внешние сервисы (языковая модель, почта, чтение сайтов) подключаются через общие интерфейсы: по умолчанию работают безопасные заглушки, реальные сервисы включаются в настройках.</p>
     </div>
     <div class="pipe reveal">
-      <div class="step"><small>01</small><b>Scout</b><span>Компании по ICP: датасет, CSV, вручную</span></div>
-      <div class="step"><small>02</small><b>Research</b><span>Факты со ссылкой, цитатой и датой</span></div>
-      <div class="step"><small>03</small><b>Qualifier</b><span>ICP Fit 0–100, уверенность, стоп-критерии</span></div>
-      <div class="step"><small>04</small><b>Sales</b><span>Rich Content / WTB / PIM по болям</span></div>
-      <div class="step"><small>05</small><b>Writer</b><span>Письмо только из фактов с источниками</span></div>
-      <div class="step human"><small>👤 ЧЕЛОВЕК</small><b>Review</b><span>Правка, одобрение, отклонение, история</span></div>
-      <div class="step"><small>06</small><b>Sender</b><span>9 условий для реальной отправки</span></div>
-      <div class="step"><small>07</small><b>Reply Handler</b><span>Класс ответа, отписка → DNC</span></div>
+      <div class="step"><small>01</small><b>Поиск</b><span>Компании по профилю клиента: датасет, CSV, вручную</span></div>
+      <div class="step"><small>02</small><b>Исследование</b><span>Факты со ссылкой, цитатой и датой</span></div>
+      <div class="step"><small>03</small><b>Квалификация</b><span>Оценка 0–100, уверенность, стоп-критерии</span></div>
+      <div class="step"><small>04</small><b>Подбор продукта</b><span>Rich Content / WTB / PIM по болям</span></div>
+      <div class="step"><small>05</small><b>Автор писем</b><span>Письмо только из фактов с источниками</span></div>
+      <div class="step human"><small>👤 ЧЕЛОВЕК</small><b>Проверка</b><span>Правка, одобрение, отклонение, история</span></div>
+      <div class="step"><small>06</small><b>Отправка</b><span>9 условий для реальной отправки</span></div>
+      <div class="step"><small>07</small><b>Ответы</b><span>Тип ответа, отписка → стоп-лист</span></div>
     </div>
   </div>
 </section>
@@ -211,18 +211,18 @@ footer .wrap{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap}
   <div class="wrap">
     <div class="head reveal">
       <div class="kicker">Продукт</div>
-      <h2>Что видит SDR</h2>
-      <p class="sub">Скриншоты рабочего MVP в Demo mode. Компании вымышлены (домены в зарезервированной зоне .test).</p>
+      <h2>Что видит менеджер по продажам</h2>
+      <p class="sub">Скриншоты рабочего прототипа в демо-режиме. Компании вымышлены (домены в зарезервированной зоне .test).</p>
     </div>
 
     <div class="tour reveal">
       <div class="tour-text">
         <span class="tag">Карточка компании</span>
-        <h3>Score, который можно оспорить</h3>
+        <h3>Оценка, которую можно проверить</h3>
         <p>Вместо одного числа пять факторов с весами и объяснением. Нехватка данных засчитывается консервативно и снижает уверенность, а не завышает оценку.</p>
-        <ul><li>Соответствие отрасли, масштаб, сигналы спроса, стек, качество данных</li><li>Sales Agent объясняет выбор продукта</li><li>Контакты не генерируются: только вручную и с источником</li></ul>
+        <ul><li>Соответствие отрасли, масштаб, сигналы спроса, стек, качество данных</li><li>Агент объясняет, почему предлагает именно этот продукт</li><li>Контакты не генерируются: только вручную и с источником</li></ul>
       </div>
-      <a class="shot crop" href="screenshots/company.png" target="_blank" rel="noopener"><img src="screenshots/company.png" alt="Карточка компании с разбивкой ICP Fit Score по факторам" loading="lazy" width="2880" height="3000"></a>
+      <a class="shot crop" href="screenshots/company.png" target="_blank" rel="noopener"><img src="screenshots/company.png" alt="Карточка компании с разбивкой оценки по факторам" loading="lazy" width="2880" height="3000"></a>
     </div>
 
     <div class="tour reveal">
@@ -237,46 +237,46 @@ footer .wrap{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap}
 
     <div class="tour reveal">
       <div class="tour-text">
-        <span class="tag green">Outreach</span>
+        <span class="tag green">Письма</span>
         <h3>Каждое утверждение с источником</h3>
-        <p>Writer использует только собранные факты и помечает их [1], [2]. Панель готовности честно перечисляет, почему реальная отправка сейчас невозможна.</p>
-        <ul><li>Draft → Needs Review → Approved → Sent</li><li>Правка одобренного письма снимает одобрение</li><li>Полная история версий</li></ul>
+        <p>Агент-автор использует только собранные факты и помечает их [1], [2]. Панель готовности честно перечисляет, почему реальная отправка сейчас невозможна.</p>
+        <ul><li>Черновик → На проверке → Одобрено → Отправлено</li><li>Правка одобренного письма снимает одобрение</li><li>Полная история версий</li></ul>
       </div>
       <a class="shot crop" href="screenshots/email.png" target="_blank" rel="noopener"><img src="screenshots/email.png" alt="Редактор письма с проверяемыми утверждениями и историей изменений" loading="lazy" width="2880" height="2600"></a>
     </div>
 
     <div class="tour reveal">
       <div class="tour-text">
-        <span class="tag amber">Analytics</span>
+        <span class="tag amber">Аналитика</span>
         <h3>Реальные цифры отдельно от демо</h3>
-        <p>Воронка, конверсии между этапами, распределение по score и статистика кампаний с колонками «реально / симуляция». На вкладке «Реальные» сейчас нули, и это честно.</p>
+        <p>Воронка, конверсии между этапами, распределение по оценке и статистика кампаний с колонками «реально / симуляция». На вкладке «Реальные» сейчас нули, и это честно.</p>
         <ul><li>Экспорт CSV: компании, письма, аналитика</li><li>Никакого выдуманного ROI</li></ul>
       </div>
-      <a class="shot" href="screenshots/analytics.png" target="_blank" rel="noopener"><img src="screenshots/analytics.png" alt="Аналитика: воронка, распределение ICP Fit Score, статистика кампаний" loading="lazy" width="2880" height="1800"></a>
+      <a class="shot" href="screenshots/analytics.png" target="_blank" rel="noopener"><img src="screenshots/analytics.png" alt="Аналитика: воронка, распределение оценок, статистика кампаний" loading="lazy" width="2880" height="1800"></a>
     </div>
 
     <div class="grid g3" style="margin-top:72px">
-      <a class="shot reveal" href="screenshots/leads.png" target="_blank" rel="noopener"><img src="screenshots/leads.png" alt="Lead Discovery: таблица компаний с фильтрами" loading="lazy"></a>
+      <a class="shot reveal" href="screenshots/leads.png" target="_blank" rel="noopener"><img src="screenshots/leads.png" alt="Поиск лидов: таблица компаний с фильтрами" loading="lazy"></a>
       <a class="shot reveal" href="screenshots/settings.png" target="_blank" rel="noopener"><img src="screenshots/settings.png" alt="Настройки: режим, интеграции, модель оценки, согласование" loading="lazy"></a>
-      <a class="shot reveal" href="screenshots/dashboard-dark.png" target="_blank" rel="noopener"><img src="screenshots/dashboard-dark.png" alt="Dashboard в тёмной теме" loading="lazy"></a>
+      <a class="shot reveal" href="screenshots/dashboard-dark.png" target="_blank" rel="noopener"><img src="screenshots/dashboard-dark.png" alt="Обзор в тёмной теме" loading="lazy"></a>
     </div>
-    <p class="muted" style="text-align:center;font-size:14px;margin-top:12px">Lead Discovery · Настройки и интеграции · тёмная тема</p>
+    <p class="muted" style="text-align:center;font-size:14px;margin-top:12px">Поиск лидов · Настройки и интеграции · тёмная тема</p>
   </div>
 </section>
 
 <section style="padding-top:0">
   <div class="wrap">
     <div class="head reveal">
-      <div class="kicker">Build vs reuse</div>
-      <h2>Построено на open-source Harvey</h2>
-      <p class="sub">Сначала аудит, потом код. От <a href="https://github.com/ethanplusai/harvey">Harvey</a> (MIT) взято то, что делает продукт безопаснее, и оставлено то, что противоречит требованиям MVP.</p>
+      <div class="kicker">Что взяли готовым</div>
+      <h2>Построено на открытом проекте Harvey</h2>
+      <p class="sub">Сначала аудит, потом код. От <a href="https://github.com/ethanplusai/harvey">Harvey</a> (MIT) взято то, что делает продукт безопаснее, и оставлено то, что противоречит требованиям прототипа.</p>
     </div>
     <div class="card tablecard reveal">
       <table>
         <thead><tr><th>Компонент Harvey</th><th>Решение</th><th>Зачем / почему нет</th></tr></thead>
         <tbody>
           <tr><td><code>tech_detect</code></td><td><span class="tag green">Переиспользован</span></td><td class="muted">Фактор «технологическая совместимость» без сетевых запросов</td></tr>
-          <tr><td><code>public_http</code></td><td><span class="tag green">Переиспользован</span></td><td class="muted">SSRF-защищённая загрузка сайтов для live-ресёрча и проверки фактов</td></tr>
+          <tr><td><code>public_http</code></td><td><span class="tag green">Переиспользован</span></td><td class="muted">Безопасная загрузка сайтов для исследования и проверки фактов</td></tr>
           <tr><td><code>untrusted.fence</code></td><td><span class="tag green">Переиспользован</span></td><td class="muted">Защита от prompt-injection в тексте с сайтов</td></tr>
           <tr><td><code>gate.do_not_contact</code></td><td><span class="tag green">Переиспользован</span></td><td class="muted">Корректное сопоставление DNC по адресу и домену</td></tr>
           <tr><td><code>fit.py</code></td><td><span class="tag">Идея развита</span></td><td class="muted">«Число + причины» → 5 факторов, уверенность, стоп-критерии</td></tr>
@@ -295,19 +295,19 @@ footer .wrap{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap}
       <p class="sub">Все метрики вычислимы из текущей схемы данных. Цели — допущения для проверки, а не результаты.</p>
     </div>
     <div class="grid g4 reveal">
-      <div class="card metric ns" style="grid-column:span 2"><span class="tag green">North Star</span><div class="num" style="margin-top:14px;font-size:24px;letter-spacing:-.02em">Qualified conversations / SDR / неделя</div><div class="lbl">Ответы «интерес» на реально отправленные письма по квалифицированным лидам</div></div>
-      <div class="card metric"><div class="num">&lt; 30 мин</div><div class="lbl">Activation: от кампании до первого одобренного письма</div></div>
-      <div class="card metric"><div class="num">≥ 60%</div><div class="lbl">Approval rate черновиков</div></div>
-      <div class="card metric"><div class="num">−50%</div><div class="lbl">Efficiency: минут SDR на аккаунт</div></div>
-      <div class="card metric"><div class="num">≥ 98%</div><div class="lbl">Quality: точность утверждений при аудите</div></div>
-      <div class="card metric"><div class="num" style="color:var(--red)">0</div><div class="lbl">Guardrail: писем без одобрения</div></div>
-      <div class="card metric"><div class="num" style="color:var(--red)">0</div><div class="lbl">Guardrail: вымышленных контактов</div></div>
+      <div class="card metric ns" style="grid-column:span 2"><span class="tag green">Главная метрика (North Star)</span><div class="num" style="margin-top:14px;font-size:24px;letter-spacing:-.02em">Целевые диалоги на менеджера в неделю</div><div class="lbl">Ответы «интерес» на реально отправленные письма по квалифицированным лидам</div></div>
+      <div class="card metric"><div class="num">&lt; 30 мин</div><div class="lbl">Активация: от создания кампании до первого одобренного письма</div></div>
+      <div class="card metric"><div class="num">≥ 60%</div><div class="lbl">Доля черновиков, одобренных менеджером</div></div>
+      <div class="card metric"><div class="num">−50%</div><div class="lbl">Эффективность: время менеджера на одну компанию</div></div>
+      <div class="card metric"><div class="num">≥ 98%</div><div class="lbl">Качество: точность утверждений при проверке</div></div>
+      <div class="card metric"><div class="num" style="color:var(--red)">0</div><div class="lbl">Ограничение: писем без одобрения</div></div>
+      <div class="card metric"><div class="num" style="color:var(--red)">0</div><div class="lbl">Ограничение: вымышленных контактов</div></div>
     </div>
 
     <div class="grid g3 roadmap" style="margin-top:56px">
-      <div class="card reveal"><h3><span class="tag green">Now</span> MVP готов</h3><p>Полный цикл в Demo mode, объяснимый скоринг, согласование, раздельная аналитика.</p></div>
-      <div class="card reveal"><h3><span class="tag">Next</span> 1–2 месяца</h3><p>Чтение входящих, легальный источник компаний, LLM-ресёрч с цитатами, SSO и роли.</p></div>
-      <div class="card reveal"><h3><span class="tag">Later</span> 3–6 месяцев</h3><p>CRM-синхронизация, follow-up-цепочки, калибровка весов по реальным ответам.</p></div>
+      <div class="card reveal"><h3><span class="tag green">Сейчас</span> Прототип готов</h3><p>Полный цикл в демо-режиме, объяснимая оценка, согласование, раздельная аналитика.</p></div>
+      <div class="card reveal"><h3><span class="tag">Дальше</span> 1–2 месяца</h3><p>Чтение входящих, легальный источник компаний, исследование сайтов с помощью ИИ, вход по SSO и роли.</p></div>
+      <div class="card reveal"><h3><span class="tag">Потом</span> 3–6 месяцев</h3><p>синхронизация с CRM, цепочки повторных писем, настройка весов по реальным ответам.</p></div>
     </div>
   </div>
 </section>
@@ -323,7 +323,7 @@ footer .wrap{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap}
         <p style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap">
           <a class="btn primary" href="https://github.com/manafkristina-max/salespilot-ai">Репозиторий</a>
           <a class="btn" href="https://github.com/manafkristina-max/salespilot-ai/blob/main/CASE_STUDY.md">Полный кейс</a>
-          <a class="btn" href="https://github.com/manafkristina-max/salespilot-ai/blob/main/DEMO_SCRIPT.md">Demo script</a>
+          <a class="btn" href="https://github.com/manafkristina-max/salespilot-ai/blob/main/DEMO_SCRIPT.md">Сценарий демо</a>
         </p>
       </div>
       <div class="reveal">
@@ -334,14 +334,14 @@ cd salespilot-ai
 <span class="c"># 2. Установить, собрать UI, заполнить демо и запустить</span>
 ./start.sh --demo
 
-<span class="c"># 3. Проверить: 20 тестов backend</span>
+<span class="c"># 3. Проверить: 20 автотестов</span>
 cd backend && .venv/bin/python -m pytest -q</pre>
         <div class="honest" style="margin-top:20px">
           <h3>Что это и чего здесь нет</h3>
           <ul>
             <li>Все компании и факты в демо вымышлены, контактных лиц нет.</li>
             <li>Реальные продажи, ответы и встречи не заявляются: продукт не запускался на клиентах.</li>
-            <li>Live-провайдеры (Anthropic, SMTP, чтение сайтов) реализованы, но на реальных данных не проверялись.</li>
+            <li>Подключение внешних сервисов (Anthropic, почта, чтение сайтов) реализовано, но на реальных данных не проверялось.</li>
           </ul>
         </div>
       </div>
@@ -351,8 +351,8 @@ cd backend && .venv/bin/python -m pytest -q</pre>
 
 <footer>
   <div class="wrap">
-    <span>SalesPilot AI · продуктовый кейс и MVP · 2026</span>
-    <span><a href="https://github.com/manafkristina-max">@manafkristina-max</a> · Код под MIT · Основано на <a href="https://github.com/ethanplusai/harvey">Harvey</a> (MIT)</span>
+    <span>SalesPilot AI · продуктовый кейс и прототип · 2026</span>
+    <span><a href="https://github.com/manafkristina-max">@manafkristina-max</a> · Код под лицензией MIT · Основано на <a href="https://github.com/ethanplusai/harvey">Harvey</a> (MIT)</span>
   </div>
 </footer>
 

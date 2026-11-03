@@ -34,7 +34,7 @@ export default function CampaignDetail() {
       <PageHeader title={c.name} subtitle={c.description}
         actions={<>
           <Button icon={<Upload className="h-4 w-4" />} onClick={() => setImportOpen(true)}>Импорт CSV</Button>
-          <Button icon={<Search className="h-4 w-4" />} loading={busy === "scout"} onClick={() => act("scout", async () => (await api.scout(id)).message)}>Scout: демо-датасет</Button>
+          <Button icon={<Search className="h-4 w-4" />} loading={busy === "scout"} onClick={() => act("scout", async () => (await api.scout(id)).message)}>Найти компании (демо)</Button>
           <Button variant="primary" icon={<Play className="h-4 w-4" />} loading={busy === "run"} disabled={!c.leads?.length}
             onClick={() => act("run", async () => {
               const r = await api.runPipeline(id);
@@ -42,9 +42,9 @@ export default function CampaignDetail() {
             })}>Запустить агентов</Button>
         </>} />
 
-      <Card title="Ideal Customer Profile" className="mb-4"
+      <Card title="Профиль идеального клиента (ICP)" className="mb-4"
         actions={dirty ? <><Button size="sm" variant="ghost" onClick={() => setIcp(c.icp)}>Отменить</Button>
-          <Button size="sm" variant="primary" loading={busy === "icp"} onClick={() => act("icp", async () => { await api.updateCampaign(id, { icp: icp! }); return "ICP сохранён. Перезапустите агентов, чтобы пересчитать score."; })}>Сохранить ICP</Button></> : null}>
+          <Button size="sm" variant="primary" loading={busy === "icp"} onClick={() => act("icp", async () => { await api.updateCampaign(id, { icp: icp! }); return "ICP сохранён. Перезапустите агентов, чтобы пересчитать оценки."; })}>Сохранить ICP</Button></> : null}>
         {icp && <IcpEditor value={icp} onChange={setIcp} products={products.data || []} />}
       </Card>
 
@@ -54,11 +54,11 @@ export default function CampaignDetail() {
           await api.deleteCampaign(id); toast("success", "Кампания удалена"); nav("/campaigns");
         }}>Удалить</Button>}>
         {!c.leads?.length ? (
-          <Empty title="В кампании нет лидов" hint="Запустите Scout Agent на демо-датасете, импортируйте CSV или добавьте компании на странице Lead Discovery." />
+          <Empty title="В кампании нет лидов" hint="Запустите поиск по демо-датасету, импортируйте CSV или добавьте компании на странице «Поиск лидов»." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="border-b border-zinc-100 dark:border-zinc-800"><tr><th className="th">Компания</th><th className="th">Отрасль</th><th className="th">Страна</th><th className="th">ICP Fit</th><th className="th">Этап</th></tr></thead>
+              <thead className="border-b border-zinc-100 dark:border-zinc-800"><tr><th className="th">Компания</th><th className="th">Отрасль</th><th className="th">Страна</th><th className="th">Соответствие ICP</th><th className="th">Этап</th></tr></thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {c.leads.map((l) => (
                   <tr key={l.id} className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50" onClick={() => nav(`/companies/${l.company_id}?lead=${l.id}`)}>

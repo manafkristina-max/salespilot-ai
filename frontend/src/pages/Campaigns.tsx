@@ -34,7 +34,7 @@ export default function Campaigns() {
               <div className="mt-4 grid grid-cols-3 border-t border-zinc-100 pt-3 text-center text-xs text-zinc-500 dark:border-zinc-800">
                 <div><div className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{c.stats?.leads ?? 0}</div>лидов</div>
                 <div><div className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{c.stats?.qualified ?? 0}</div>квалиф.</div>
-                <div><div className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{c.stats?.avg_score ?? "—"}</div>ср. score</div>
+                <div><div className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{c.stats?.avg_score ?? "—"}</div>ср. оценка</div>
               </div>
               <div className="mt-2 text-[11px] text-zinc-400">Создана {fmtDate(c.created_at)}</div>
             </Link>
@@ -72,7 +72,7 @@ function CreateCampaign({ open, onClose, products }: { open: boolean; onClose: (
           <Field label="Описание"><input className="input" value={description} onChange={(e) => setDescription(e.target.value)} /></Field>
         </div>
         <div className="border-t border-zinc-100 pt-4 dark:border-zinc-800">
-          <h4 className="mb-3 text-sm font-semibold">Ideal Customer Profile</h4>
+          <h4 className="mb-3 text-sm font-semibold">Профиль идеального клиента (ICP)</h4>
           <IcpEditor value={icp} onChange={setIcp} products={products} />
         </div>
       </div>

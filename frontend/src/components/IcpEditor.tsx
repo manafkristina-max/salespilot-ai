@@ -30,13 +30,13 @@ export function IcpEditor({ value, onChange, products }: { value: ICP; onChange:
       <Field label="Отрасли"><TagInput value={value.industries} onChange={(v) => set("industries", v)} placeholder="Enter, чтобы добавить" suggestions={SUG.industries} /></Field>
       <Field label="География (страны / города)"><TagInput value={value.geographies} onChange={(v) => set("geographies", v)} suggestions={SUG.geographies} /></Field>
       <Field label="Тип компании"><TagInput value={value.company_types} onChange={(v) => set("company_types", v)} suggestions={SUG.company_types} /></Field>
-      <Field label="Возможные проблемы (ключевые слова)" hint="Ищутся в фактах исследования — влияют на «Сигналы спроса»"><TagInput value={value.pains} onChange={(v) => set("pains", v)} suggestions={SUG.pains} /></Field>
+      <Field label="Возможные проблемы (ключевые слова)" hint="Ищутся в фактах исследования и влияют на «Сигналы спроса»"><TagInput value={value.pains} onChange={(v) => set("pains", v)} suggestions={SUG.pains} /></Field>
       <div className="grid grid-cols-3 gap-2">
         <Field label="Сотрудники от"><input className="input" type="number" min={0} value={value.employees_min ?? ""} onChange={(e) => set("employees_min", num(e.target.value))} /></Field>
         <Field label="до"><input className="input" type="number" min={0} value={value.employees_max ?? ""} onChange={(e) => set("employees_max", num(e.target.value))} /></Field>
         <Field label="Мин. SKU"><input className="input" type="number" min={0} value={value.min_sku ?? ""} onChange={(e) => set("min_sku", num(e.target.value))} /></Field>
       </div>
-      <Field label="Предлагаемый продукт" hint="«Авто» — Sales Agent подберёт продукт по найденным болям">
+      <Field label="Предлагаемый продукт" hint="«Авто» — агент подбора продукта выберет продукт по найденным болям">
         <select className="input" value={value.product} onChange={(e) => set("product", e.target.value)}>
           <option value="auto">Авто (по болям клиента)</option>
           {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}

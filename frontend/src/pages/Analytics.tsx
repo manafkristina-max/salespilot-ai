@@ -16,7 +16,7 @@ export default function Analytics() {
 
   return (
     <div>
-      <PageHeader title="Analytics" subtitle="Только измеряемые показатели из базы. ROI, выручка и прогнозы не рассчитываются — для них нет реальных данных."
+      <PageHeader title="Аналитика" subtitle="Только измеряемые показатели из базы. ROI, выручка и прогнозы не рассчитываются: для них нет реальных данных."
         actions={<a href={`/api/export/analytics.csv${qs({ scope, campaign_id: campaign })}`}><Button icon={<Download className="h-4 w-4" />}>Экспорт CSV</Button></a>} />
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="flex rounded-lg border border-zinc-200 bg-white p-0.5 dark:border-zinc-800 dark:bg-zinc-900">
@@ -29,10 +29,10 @@ export default function Analytics() {
       {loading && !data ? <Spinner /> : error ? <ErrorState error={error} retry={reload} /> : data && (
         <>
           {scope !== "real" && data.demo_leads > 0 && <DemoNotice>В выборке {data.demo_leads} демо-лидов: их отправки и ответы — симуляция. Для реальных результатов переключитесь на «Реальные».</DemoNotice>}
-          {scope === "real" && data.real_leads === 0 && <DemoNotice>Реальных лидов пока нет. Импортируйте свои компании через CSV или добавьте вручную. Реальные отправки появятся только после подключения SMTP и Live mode.</DemoNotice>}
+          {scope === "real" && data.real_leads === 0 && <DemoNotice>Реальных лидов пока нет. Импортируйте свои компании через CSV или добавьте вручную. Реальные отправки появятся только после подключения почты (SMTP) и включения рабочего режима.</DemoNotice>}
           <div className="grid gap-4 lg:grid-cols-2">
             <Card title="Воронка и конверсии между этапами"><Funnel steps={data.funnel} /></Card>
-            <Card title={`Распределение по ICP Fit Score${data.unscored ? ` · без оценки: ${data.unscored}` : ""}`}>
+            <Card title={`Распределение по оценке соответствия ICP${data.unscored ? ` · без оценки: ${data.unscored}` : ""}`}>
               {data.score_distribution.every((d) => d.count === 0) ? <Empty title="Нет оценённых лидов" /> : (
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">

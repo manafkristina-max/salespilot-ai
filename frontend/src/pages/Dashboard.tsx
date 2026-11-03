@@ -5,6 +5,11 @@ import { DemoNotice } from "../components/Layout";
 import { Badge, Button, Card, Empty, ErrorState, fmtDate, PageHeader, Spinner, Stat, useAsync } from "../components/ui";
 
 const STATUS_COLOR = { success: "green", error: "red", skipped: "amber" } as const;
+export const RUN_STATUS: Record<string, string> = { success: "ок", error: "ошибка", skipped: "пропущен" };
+export const AGENT_LABEL: Record<string, string> = {
+  scout: "Поиск", research: "Исследование", qualifier: "Квалификация", sales: "Подбор продукта",
+  writer: "Автор писем", sender: "Отправка", reply_handler: "Ответы",
+};
 
 export default function Dashboard() {
   const { data, error, loading, reload } = useAsync(api.dashboard, []);
@@ -15,20 +20,20 @@ export default function Dashboard() {
 
   return (
     <div>
-      <PageHeader title="Dashboard" subtitle="Состояние воронки и агентов. Реальные и демонстрационные показатели разделены."
+      <PageHeader title="Обзор" subtitle="Состояние воронки и агентов. Реальные и демонстрационные показатели разделены."
         actions={<><Link to="/campaigns?new=1"><Button variant="primary">Новая кампания</Button></Link></>} />
       {d.mode === "demo" && (
-        <DemoNotice><b>Demo mode.</b> Компании из демо-датасета вымышлены (домены .test), письма не отправляются — только симуляция. Реальные показатели считаются отдельно.</DemoNotice>
+        <DemoNotice><b>Демо-режим.</b> Компании из демо-датасета вымышлены (домены .test), письма не отправляются — только симуляция. Реальные показатели считаются отдельно.</DemoNotice>
       )}
       {empty ? (
-        <Card><Empty title="Пока нет компаний" hint="Создайте кампанию, задайте ICP и запустите Scout Agent на демо-датасете, либо импортируйте CSV со своими лидами."
+        <Card><Empty title="Пока нет компаний" hint="Создайте кампанию, опишите идеального клиента (ICP) и запустите поиск по демо-датасету или импортируйте CSV со своими лидами."
           action={<Link to="/campaigns?new=1"><Button variant="primary">Создать кампанию</Button></Link>} /></Card>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
             <Stat label="Компании" icon={<Building2 className="h-4 w-4" />} value={d.companies.total} sub={<Split real={d.companies.real} demo={d.companies.demo} />} />
             <Stat label="Квалифицированы" icon={<CheckCircle2 className="h-4 w-4" />} value={d.qualified.real + d.qualified.demo} sub={<Split real={d.qualified.real} demo={d.qualified.demo} />} />
-            <Stat label="Черновики" icon={<FileText className="h-4 w-4" />} value={d.drafts} sub={`${d.needs_review} на ревью · ${d.approved} одобрено`} />
+            <Stat label="Черновики" icon={<FileText className="h-4 w-4" />} value={d.drafts} sub={`${d.needs_review} на проверке · ${d.approved} одобрено`} />
             <Stat label="Отправки (реальные)" icon={<Send className="h-4 w-4" />} value={d.sent.live} sub={`симуляций: ${d.sent.simulated}`} />
             <Stat label="Ответы (реальные)" icon={<MessageSquare className="h-4 w-4" />} value={d.replies.live} sub={`на симуляции: ${d.replies.simulated}`} />
             <Stat label="Встречи" icon={<CalendarCheck className="h-4 w-4" />} value={d.meetings.real + d.meetings.demo} sub={<Split real={d.meetings.real} demo={d.meetings.demo} />} />
@@ -44,7 +49,7 @@ export default function Dashboard() {
                     <Bot className="mt-0.5 h-4 w-4 text-zinc-400" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 text-sm font-medium">{a.label}
-                        {a.last ? <Badge color={STATUS_COLOR[a.last.status as keyof typeof STATUS_COLOR] || "gray"}>{a.last.status === "success" ? "ok" : a.last.status}</Badge> : <Badge>не запускался</Badge>}
+                        {a.last ? <Badge color={STATUS_COLOR[a.last.status as keyof typeof STATUS_COLOR] || "gray"}>{RUN_STATUS[a.last.status] || a.last.status}</Badge> : <Badge>не запускался</Badge>}
                       </div>
                       <div className="truncate text-xs text-zinc-500" title={a.last?.message}>{a.provider}{a.last ? ` · ${fmtDate(a.last.started_at)}` : ""}</div>
                     </div>
@@ -54,12 +59,12 @@ export default function Dashboard() {
               </ul>
             </Card>
           </div>
-          <Card title="Последние действия агентов" className="mt-4" bodyClass="p-0" actions={<Link to="/settings#logs" className="text-xs text-brand-600 hover:underline">Все логи →</Link>}>
+          <Card title="Последние действия агентов" className="mt-4" bodyClass="p-0" actions={<Link to="/settings#logs" className="text-xs text-brand-600 hover:underline">Весь журнал →</Link>}>
             {d.recent_runs.length === 0 ? <Empty title="Логов пока нет" icon={<Activity className="h-5 w-5" />} /> : (
               <ul className="divide-y divide-zinc-100 text-sm dark:divide-zinc-800">
                 {d.recent_runs.map((r) => (
                   <li key={r.id} className="flex items-center gap-3 px-4 py-2">
-                    <Badge color={STATUS_COLOR[r.status as keyof typeof STATUS_COLOR] || "gray"}>{r.agent}</Badge>
+                    <Badge color={STATUS_COLOR[r.status as keyof typeof STATUS_COLOR] || "gray"}>{AGENT_LABEL[r.agent] || r.agent}</Badge>
                     <span className="min-w-0 flex-1 truncate" title={r.message}>{r.message}</span>
                     <span className="text-xs text-zinc-400">{fmtDate(r.started_at)}</span>
                   </li>

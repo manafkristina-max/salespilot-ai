@@ -1,6 +1,7 @@
 import { CheckCircle2, CircleDashed, Lock, Plug, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api, SettingsValues } from "../api";
+import { AGENT_LABEL, RUN_STATUS } from "./Dashboard";
 import { useMode } from "../components/Layout";
 import { Badge, Button, Card, cx, ErrorState, Field, fmtDate, PageHeader, Spinner, TagInput, useAsync, useToast } from "../components/ui";
 
@@ -36,13 +37,13 @@ export default function Settings() {
           <div className="grid grid-cols-2 gap-2">
             {(["demo", "live"] as const).map((m) => (
               <button key={m} onClick={() => setV({ ...v, mode: m })} className={cx("rounded-lg border p-3 text-left text-sm transition", v.mode === m ? "border-zinc-900 ring-1 ring-zinc-900 dark:border-white dark:ring-white" : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700")}>
-                <div className="font-medium">{m === "demo" ? "Demo mode" : "Live mode"}</div>
-                <div className="mt-0.5 text-xs text-zinc-500">{m === "demo" ? "Нет сетевых запросов, LLM — mock, отправка — только симуляция." : "Используются live-провайдеры, настроенные в .env. Неподключённые остаются mock."}</div>
+                <div className="font-medium">{m === "demo" ? "Демо-режим" : "Рабочий режим"}</div>
+                <div className="mt-0.5 text-xs text-zinc-500">{m === "demo" ? "Без сетевых запросов, письма пишутся по шаблонам, отправка только симулируется." : "Подключаются внешние сервисы, настроенные в .env. Остальные работают как в демо."}</div>
               </button>
             ))}
           </div>
           {dirty("mode") && <div className="mt-3 flex justify-end"><Button variant="primary" size="sm" loading={saving === "mode"} onClick={() => save("mode", `Режим: ${v.mode}`)}>Применить режим</Button></div>}
-          {v.mode === "live" && !data.env.smtp_configured && <p className="mt-3 text-xs text-amber-700 dark:text-amber-400">SMTP не настроен — даже в Live mode письма будут только симулироваться.</p>}
+          {v.mode === "live" && !data.env.smtp_configured && <p className="mt-3 text-xs text-amber-700 dark:text-amber-400">Почта (SMTP) не настроена, поэтому даже в рабочем режиме письма будут только симулироваться.</p>}
         </Card>
 
         <Card title={<span className="flex items-center gap-1.5"><Plug className="h-4 w-4" /> Интеграции и AI-провайдеры</span>} bodyClass="p-0">
@@ -51,14 +52,14 @@ export default function Settings() {
               <li key={i.id} className="flex items-start gap-3 px-4 py-2.5">
                 {i.status === "connected" ? <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-500" /> : i.status === "error" ? <XCircle className="mt-0.5 h-4 w-4 text-red-500" /> : <CircleDashed className="mt-0.5 h-4 w-4 text-zinc-400" />}
                 <div className="min-w-0 flex-1"><div className="text-sm font-medium">{i.name}</div><div className="text-xs text-zinc-500">{i.detail}</div></div>
-                <Badge color={i.status === "connected" ? "green" : i.status === "mock" ? "amber" : i.status === "error" ? "red" : "gray"}>{({ connected: "подключено", mock: "mock", disabled: "выключено", not_configured: "не настроено", error: "ошибка" } as Record<string, string>)[i.status] || i.status}</Badge>
+                <Badge color={i.status === "connected" ? "green" : i.status === "mock" ? "amber" : i.status === "error" ? "red" : "gray"}>{({ connected: "подключено", mock: "шаблоны", disabled: "выключено", not_configured: "не настроено", error: "ошибка" } as Record<string, string>)[i.status] || i.status}</Badge>
               </li>
             ))}
           </ul>
           <p className="border-t border-zinc-100 px-4 py-2.5 text-xs text-zinc-500 dark:border-zinc-800">Ключи и пароли задаются только в локальном файле <code>.env</code> (см. <code>.env.example</code>) и не отображаются в интерфейсе.</p>
         </Card>
 
-        <Card title="Модель оценки (ICP Fit Score)" actions={<>{(dirty("scoring_weights") || dirty("qualify_threshold")) && <Button size="sm" variant="primary" loading={saving === "scoring_weights"} onClick={async () => { await save("scoring_weights"); await save("qualify_threshold"); }}>Сохранить</Button>}</>}>
+        <Card title="Модель оценки соответствия ICP" actions={<>{(dirty("scoring_weights") || dirty("qualify_threshold")) && <Button size="sm" variant="primary" loading={saving === "scoring_weights"} onClick={async () => { await save("scoring_weights"); await save("qualify_threshold"); }}>Сохранить</Button>}</>}>
           <div className="space-y-3">
             {Object.entries(v.scoring_weights).map(([k, w]) => (
               <div key={k} className="flex items-center gap-3 text-sm">
@@ -91,7 +92,7 @@ export default function Settings() {
           </div>
         </Card>
 
-        <Card title="Продукты (каталог для Sales Agent)" actions={<SaveBtn k="products" />}>
+        <Card title="Продукты (каталог для подбора)" actions={<SaveBtn k="products" />}>
           <div className="space-y-4">
             {v.products.map((p, i) => (
               <div key={p.id} className="space-y-2 rounded-lg border border-zinc-200 p-3 dark:border-zinc-800">
@@ -107,7 +108,7 @@ export default function Settings() {
           <Card title="Подпись отправителя" actions={<SaveBtn k="sender" />}>
             <Field label="Подпись (подставляется в письма)"><textarea className="textarea" rows={4} value={v.sender.signature} onChange={(e) => setV({ ...v, sender: { ...v.sender, signature: e.target.value } })} /></Field>
           </Card>
-          <Card title="Do-not-contact" actions={<SaveBtn k="do_not_contact" />}>
+          <Card title="Стоп-лист (не связываться)" actions={<SaveBtn k="do_not_contact" />}>
             <Field label="Email-адреса и домены" hint="Компании с этих доменов получают score 0; отправка на адреса блокируется. Отписки добавляются автоматически.">
               <TagInput value={v.do_not_contact} onChange={(x) => setV({ ...v, do_not_contact: x })} placeholder="domain.ru или name@domain.ru" />
             </Field>
@@ -124,7 +125,7 @@ function AgentLogs() {
   const { data, loading, reload } = useAsync(() => api.runs(agent), [agent]);
   return (
     <Card title="Логи выполнения агентов" className="mt-4" bodyClass="p-0" actions={<>
-      <select className="input h-7 w-44 text-xs" value={agent} onChange={(e) => setAgent(e.target.value)}>{AGENTS.map((a) => <option key={a} value={a}>{a || "Все агенты"}</option>)}</select>
+      <select className="input h-7 w-44 text-xs" value={agent} onChange={(e) => setAgent(e.target.value)}>{AGENTS.map((a) => <option key={a} value={a}>{a ? AGENT_LABEL[a] : "Все агенты"}</option>)}</select>
       <Button size="sm" onClick={reload}>Обновить</Button></>}>
       <div id="logs" className="max-h-[28rem] overflow-y-auto">
         {loading && !data ? <Spinner /> : !data?.length ? <p className="px-4 py-8 text-center text-sm text-zinc-500">Логов нет</p> : (
@@ -134,8 +135,8 @@ function AgentLogs() {
               {data.map((r) => (
                 <tr key={r.id}>
                   <td className="whitespace-nowrap px-3 py-1.5 text-zinc-500">{fmtDate(r.started_at)}</td>
-                  <td className="px-3 py-1.5">{r.agent}</td>
-                  <td className="px-3 py-1.5"><Badge color={r.status === "success" ? "green" : r.status === "error" ? "red" : "amber"}>{r.status}</Badge></td>
+                  <td className="px-3 py-1.5 font-sans">{AGENT_LABEL[r.agent] || r.agent}</td>
+                  <td className="px-3 py-1.5"><Badge color={r.status === "success" ? "green" : r.status === "error" ? "red" : "amber"}>{RUN_STATUS[r.status] || r.status}</Badge></td>
                   <td className="px-3 py-1.5 text-zinc-500">{r.provider}</td>
                   <td className="px-3 py-1.5 font-sans">{r.message}</td>
                   <td className="px-3 py-1.5 text-right text-zinc-500">{r.duration_ms}</td>

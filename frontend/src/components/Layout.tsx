@@ -5,11 +5,11 @@ import { api } from "../api";
 import { Badge, cx } from "./ui";
 
 const NAV = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/", label: "Обзор", icon: LayoutDashboard, end: true },
   { to: "/campaigns", label: "Кампании", icon: Megaphone },
-  { to: "/leads", label: "Lead Discovery", icon: Building2 },
-  { to: "/outreach", label: "Outreach", icon: Mail },
-  { to: "/analytics", label: "Analytics", icon: BarChart3 },
+  { to: "/leads", label: "Поиск лидов", icon: Building2 },
+  { to: "/outreach", label: "Письма", icon: Mail },
+  { to: "/analytics", label: "Аналитика", icon: BarChart3 },
   { to: "/settings", label: "Настройки", icon: Settings },
 ];
 
@@ -47,7 +47,7 @@ export function Layout() {
             </div>
             <div className="leading-tight">
               <div className="text-sm font-semibold">SalesPilot AI</div>
-              <div className="text-[11px] text-zinc-500">B2B Sales Development</div>
+              <div className="text-[11px] text-zinc-500">ИИ-агент для B2B-продаж</div>
             </div>
           </div>
           <nav className="flex flex-1 flex-col gap-0.5">
@@ -79,9 +79,9 @@ function ModeBox({ mode }: { mode: string | null }) {
     <NavLink to="/settings" className="mb-1 rounded-lg border border-zinc-200 p-2.5 text-xs dark:border-zinc-800">
       <div className="flex items-center justify-between">
         <span className="font-medium">Режим</span>
-        {mode === "demo" ? <Badge color="amber">Demo</Badge> : <Badge color="green">Live</Badge>}
+        {mode === "demo" ? <Badge color="amber">Демо</Badge> : <Badge color="green">Рабочий</Badge>}
       </div>
-      <p className="mt-1 text-zinc-500">{mode === "demo" ? "Реальная отправка и сетевые запросы выключены." : "Live-провайдеры работают, только если настроены в .env."}</p>
+      <p className="mt-1 text-zinc-500">{mode === "demo" ? "Реальная отправка и сетевые запросы выключены." : "Внешние сервисы работают, только если настроены в .env."}</p>
     </NavLink>
   );
 }
@@ -92,7 +92,7 @@ function MobileNav({ dark, setDark, mode }: { dark: boolean; setDark: (v: boolea
       {NAV.map(({ to, label, end }) => (
         <NavLink key={to} to={to} end={end} className={({ isActive }) => cx("whitespace-nowrap rounded-md px-2 py-1 text-xs", isActive ? "bg-zinc-100 font-medium dark:bg-zinc-800" : "text-zinc-500")}>{label}</NavLink>
       ))}
-      <span className="ml-auto">{mode === "demo" ? <Badge color="amber">Demo</Badge> : mode === "live" ? <Badge color="green">Live</Badge> : null}</span>
+      <span className="ml-auto">{mode === "demo" ? <Badge color="amber">Демо</Badge> : mode === "live" ? <Badge color="green">Рабочий</Badge> : null}</span>
       <button onClick={() => setDark(!dark)} className="p-1 text-zinc-500" aria-label="Тема">{dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</button>
     </div>
   );

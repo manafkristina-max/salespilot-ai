@@ -51,7 +51,7 @@ export function Badge({ color = "gray", children, className, title }: { color?: 
 }
 
 export function DemoBadge() {
-  return <Badge color="amber" title="Демонстрационные данные: компания и факты вымышлены">DEMO</Badge>;
+  return <Badge color="amber" title="Демонстрационные данные: компания и факты вымышлены">ДЕМО</Badge>;
 }
 
 export function Card({ title, actions, children, className, bodyClass }: { title?: ReactNode; actions?: ReactNode; children: ReactNode; className?: string; bodyClass?: string }) {
@@ -176,11 +176,11 @@ export function StageBadge({ stage }: { stage: string }) {
 }
 
 export const EMAIL_STATUS: Record<string, { label: string; color: keyof typeof BADGE }> = {
-  draft: { label: "Draft", color: "gray" },
-  needs_review: { label: "Needs Review", color: "amber" },
-  approved: { label: "Approved", color: "green" },
-  rejected: { label: "Rejected", color: "red" },
-  sent: { label: "Sent", color: "blue" },
+  draft: { label: "Черновик", color: "gray" },
+  needs_review: { label: "На проверке", color: "amber" },
+  approved: { label: "Одобрено", color: "green" },
+  rejected: { label: "Отклонено", color: "red" },
+  sent: { label: "Отправлено", color: "blue" },
 };
 export function EmailStatus({ status, mode }: { status: string; mode?: string | null }) {
   const s = EMAIL_STATUS[status] || { label: status, color: "gray" as const };

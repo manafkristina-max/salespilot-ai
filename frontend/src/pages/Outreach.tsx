@@ -17,7 +17,7 @@ export default function Outreach() {
 
   return (
     <div>
-      <PageHeader title="Outreach" subtitle="Каждое исходящее письмо проходит ручное одобрение. Без одобрения отправка невозможна."
+      <PageHeader title="Письма" subtitle="Каждое исходящее письмо проходит ручное одобрение. Без одобрения отправка невозможна."
         actions={<a href={`/api/export/emails.csv${qs({ status, campaign_id: campaign })}`}><Button icon={<Download className="h-4 w-4" />}>Экспорт CSV</Button></a>} />
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="flex flex-wrap gap-1 rounded-lg border border-zinc-200 bg-white p-0.5 dark:border-zinc-800 dark:bg-zinc-900">
@@ -37,7 +37,7 @@ export default function Outreach() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="border-b border-zinc-100 dark:border-zinc-800"><tr><th className="th">Тема</th><th className="th">Компания</th><th className="th">Получатель</th><th className="th">Score</th><th className="th">Статус</th><th className="th">Обновлено</th></tr></thead>
+              <thead className="border-b border-zinc-100 dark:border-zinc-800"><tr><th className="th">Тема</th><th className="th">Компания</th><th className="th">Получатель</th><th className="th">Оценка</th><th className="th">Статус</th><th className="th">Обновлено</th></tr></thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {data!.map((e) => (
                   <tr key={e.id} className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50" onClick={() => nav(`/outreach/${e.id}`)}>

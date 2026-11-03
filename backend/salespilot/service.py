@@ -34,9 +34,9 @@ log = logging.getLogger("salespilot")
 
 DEMO_FILE = Path(__file__).parent / "data" / "demo_companies.json"
 AGENTS = ["scout", "research", "qualifier", "sales", "writer", "sender", "reply_handler"]
-AGENT_LABELS = {"scout": "Scout Agent", "research": "Research Agent", "qualifier": "Qualifier Agent",
-                "sales": "Sales Agent", "writer": "Writer Agent", "sender": "Sender Agent",
-                "reply_handler": "Reply Handler"}
+AGENT_LABELS = {"scout": "Агент поиска", "research": "Агент-исследователь", "qualifier": "Агент квалификации",
+                "sales": "Агент подбора продукта", "writer": "Агент-автор писем", "sender": "Агент отправки",
+                "reply_handler": "Обработчик ответов"}
 STAGES = ["new", "researched", "qualified", "drafted", "approved", "sent", "replied", "meeting"]
 EMAIL_RE = re.compile(r"^[^@\s<>\"',;]+@[^@\s<>\"',;]+\.[a-z0-9-]{2,}$", re.I)
 EDITABLE = {"draft", "needs_review", "approved", "rejected"}
@@ -357,7 +357,7 @@ class SalesPilot:
         icp = campaign["icp"]
         with self.agent_run("scout", campaign_id, provider=source) as run:
             if source != "demo":
-                raise ServiceError("Live-источник поиска компаний не подключён. Используйте демо-датасет, "
+                raise ServiceError("Внешний источник поиска компаний не подключён. Используйте демо-датасет, "
                                    "CSV-импорт или ручное добавление.")
             inds = {i.lower() for i in icp.get("industries") or []}
             geos = {g.lower() for g in icp.get("geographies") or []}
@@ -388,7 +388,7 @@ class SalesPilot:
         if company["is_demo"]:
             return False, "демо-компания"
         if self.mode != "live":
-            return False, "включён Demo mode"
+            return False, "включён демо-режим"
         if not self.env.live_research_enabled:
             return False, "LIVE_RESEARCH_ENABLED=false в .env"
         if not company.get("website") or providers.is_reserved_domain(company.get("domain") or ""):
@@ -422,7 +422,7 @@ class SalesPilot:
                 run["details"] = {"facts_added": added, "tech": tech, "mode": "live"}
             else:
                 run["status"] = "skipped"
-                run["message"] = (f"{company['name']}: live-исследование недоступно ({why}). "
+                run["message"] = (f"{company['name']}: исследование сайта недоступно ({why}). "
                                   f"Используются только факты, добавленные вручную с источником.")
                 run["details"] = {"mode": "skipped", "reason": why}
             self.db.execute("UPDATE companies SET researched_at=? WHERE id=?", (now(), company_id))
@@ -559,7 +559,7 @@ class SalesPilot:
             except Exception as exc:
                 if not llm.is_live:
                     raise
-                warnings.append(f"Live LLM недоступен ({type(exc).__name__}), использован mock-шаблон")
+                warnings.append(f"Внешняя языковая модель недоступна ({type(exc).__name__}), письмо написано по шаблону")
                 out = providers.MockLLM().write_email(brief)
             by_id = {f["id"]: f for f in facts}
             claims = [{"n": i + 1, "fact_id": fid, "text": by_id[fid]["text"], "source_url": by_id[fid]["source_url"],
@@ -579,7 +579,7 @@ class SalesPilot:
                 "provider, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
                 (lead_id, contact["id"] if contact else None, contact["email"] if contact else "", out["subject"],
                  out["body"], "draft", dumps(claims), dumps(warnings), out["provider"], ts, ts))
-            self._version(eid, "created", "writer_agent", note=f"provider={out['provider']}")
+            self._version(eid, "created", "writer_agent", note="по шаблону" if out["provider"] == "mock" else f"модель: {out['provider']}")
             run["message"] = f"{company['name']}: черновик #{eid} ({product['name']}), утверждений с источником: {len(claims)}"
             run["provider"] = out["provider"]
         self._advance(lead_id, "drafted")
@@ -723,13 +723,13 @@ class SalesPilot:
         if sent_today >= int(approval["daily_send_limit"]):
             blockers.append(f"Достигнут дневной лимит отправок ({approval['daily_send_limit']})")
         if self.mode != "live":
-            live_blockers.append("Demo mode")
+            live_blockers.append("включён демо-режим")
         if email["is_demo"]:
             live_blockers.append("демо-компания")
         if not self.env.live_sending_enabled:
-            live_blockers.append("LIVE_SENDING_ENABLED=false")
+            live_blockers.append("реальная отправка выключена (LIVE_SENDING_ENABLED=false)")
         if not self.env.smtp_configured:
-            live_blockers.append("SMTP не настроен")
+            live_blockers.append("почта (SMTP) не настроена")
         if not email["to_email"]:
             live_blockers.append("не указан получатель")
         elif providers.is_reserved_domain(email["to_email"].rpartition("@")[2]):
@@ -757,7 +757,7 @@ class SalesPilot:
             message_id = provider.send(email["to_email"] or "(получатель не указан)", email["subject"], email["body"])
             self.db.execute("UPDATE emails SET status='sent', send_mode=?, sent_at=?, message_id=?, updated_at=? "
                             "WHERE id=?", (mode, now(), message_id, now(), eid))
-            self._version(eid, "sent", "user", f"mode={mode}")
+            self._version(eid, "sent", "user", "реальная отправка" if mode == "live" else "симуляция, ничего не отправлено")
             run["message"] = (f"Письмо #{eid} отправлено через SMTP" if mode == "live" else
                               f"Письмо #{eid}: симуляция отправки (ничего не отправлено). Причина: "
                               + ", ".join(ready["live_blockers"]))
@@ -928,14 +928,14 @@ class SalesPilot:
         if agent == "scout":
             return "Демо-датасет · CSV · вручную"
         if agent == "research":
-            return "Сайты компаний (live)" if live and self.env.live_research_enabled else "Демо-факты · ручной ввод"
+            return "Сайты компаний" if live and self.env.live_research_enabled else "Демо-факты · ручной ввод"
         if agent in ("qualifier", "sales"):
             return "Правила (детерминированно)"
         if agent == "writer":
             return "Anthropic API" if live and self.env.llm_provider == "anthropic" and self.env.anthropic_configured \
-                else "Mock-шаблоны"
+                else "Шаблоны писем"
         if agent == "sender":
-            return "SMTP (live)" if live and self.env.live_sending_enabled and self.env.smtp_configured \
+            return "Почта (SMTP)" if live and self.env.live_sending_enabled and self.env.smtp_configured \
                 else "Симуляция"
         return "Ручной ввод ответов (почта не подключена)"
 
@@ -943,13 +943,13 @@ class SalesPilot:
         e, live = self.env, self.mode == "live"
         hs = harvey_status()
         return [
-            {"id": "harvey", "name": "Harvey (vendor/harvey)", "status": "connected" if hs["available"] else "error",
+            {"id": "harvey", "name": "Harvey — открытый агент, на котором основан продукт", "status": "connected" if hs["available"] else "error",
              "detail": "Переиспользуются модули: " + ", ".join(hs["reused"]) if hs["available"] else hs["error"]},
-            {"id": "llm", "name": "LLM-провайдер",
+            {"id": "llm", "name": "Языковая модель (LLM)",
              "status": "connected" if e.llm_provider == "anthropic" and e.anthropic_configured else "mock",
-             "detail": ("Anthropic API настроен" + ("" if live else " (активен только в Live mode)"))
+             "detail": ("Anthropic API настроен" + ("" if live else " (работает только в рабочем режиме)"))
              if e.llm_provider == "anthropic" and e.anthropic_configured
-             else "Mock-шаблоны. Для live: LLM_PROVIDER=anthropic и ANTHROPIC_API_KEY в .env (платно)"},
+             else "Письма пишутся по шаблонам. Чтобы подключить модель: LLM_PROVIDER=anthropic и ANTHROPIC_API_KEY в .env (платно)"},
             {"id": "research", "name": "Исследование сайтов",
              "status": "connected" if e.live_research_enabled else "disabled",
              "detail": "Загрузка публичных страниц через SSRF-защищённый клиент Harvey"
@@ -960,7 +960,7 @@ class SalesPilot:
             {"id": "inbox", "name": "Входящие (IMAP/Gmail)", "status": "not_configured",
              "detail": "Не реализовано в MVP: ответы добавляются вручную и классифицируются Reply Handler"},
             {"id": "discovery", "name": "Источник поиска компаний", "status": "not_configured",
-             "detail": "Live-поиск не подключён. Доступно: демо-датасет, CSV, ручное добавление"},
+             "detail": "Внешний поиск не подключён. Доступно: демо-датасет, CSV, ручное добавление"},
         ]
 
     # ------------------------------------------------------------ export

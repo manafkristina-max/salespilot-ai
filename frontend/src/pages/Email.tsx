@@ -2,7 +2,7 @@ import { AlertTriangle, ArrowLeft, Check, ExternalLink, History, MessageSquare, 
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, EmailDetail } from "../api";
-import { Badge, Button, Card, DemoBadge, EmailStatus, Empty, ErrorState, Field, fmtDate, Modal, PageHeader, Spinner, useAsync, useToast, VERIFICATION } from "../components/ui";
+import { Badge, Button, Card, DemoBadge, EMAIL_STATUS, EmailStatus, Empty, ErrorState, Field, fmtDate, Modal, PageHeader, Spinner, useAsync, useToast, VERIFICATION } from "../components/ui";
 
 const REPLY_LABEL: Record<string, { label: string; color: "green" | "red" | "amber" | "gray" | "violet" }> = {
   interested: { label: "Интерес", color: "green" }, objection: { label: "Возражение", color: "amber" },
@@ -34,16 +34,16 @@ export default function EmailPage() {
     try { await fn(); toast("success", msg); const fresh = await api.email(id); setData(fresh); return true; }
     catch (err) { toast("error", (err as Error).message); return false; } finally { setBusy(null); }
   };
-  const save = () => act("save", () => api.updateEmail(id, { subject, body }), e.status === "approved" ? "Сохранено. Одобрение снято — нужно повторное ревью." : "Изменения сохранены");
+  const save = () => act("save", () => api.updateEmail(id, { subject, body }), e.status === "approved" ? "Сохранено. Одобрение снято — нужна повторная проверка." : "Изменения сохранены");
 
   return (
     <div>
-      <Link to="/outreach" className="mb-3 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-800"><ArrowLeft className="h-3.5 w-3.5" /> Outreach</Link>
+      <Link to="/outreach" className="mb-3 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-800"><ArrowLeft className="h-3.5 w-3.5" /> Письма</Link>
       <PageHeader title={<span className="flex items-center gap-2">Письмо #{e.id} <EmailStatus status={e.status} mode={e.send_mode} /></span>}
-        subtitle={<span><Link to={`/companies/${e.company_id}?lead=${e.lead_id}`} className="text-brand-600 hover:underline">{e.company_name}</Link> {e.is_demo && <DemoBadge />} · {e.campaign_name} · Writer: {e.provider === "mock" ? "mock-шаблон" : e.provider}</span>}
+        subtitle={<span><Link to={`/companies/${e.company_id}?lead=${e.lead_id}`} className="text-brand-600 hover:underline">{e.company_name}</Link> {e.is_demo && <DemoBadge />} · {e.campaign_name} · Автор: {e.provider === "mock" ? "шаблон" : e.provider}</span>}
         actions={editable ? <>
           {e.status === "rejected" && <Button icon={<RotateCcw className="h-4 w-4" />} loading={busy === "reopen"} onClick={() => act("reopen", () => api.emailAction(id, "reopen"), "Письмо возвращено в черновики")}>Вернуть в черновики</Button>}
-          {e.status === "draft" && <Button loading={busy === "submit"} disabled={dirty} onClick={() => act("submit", () => api.emailAction(id, "submit"), "Отправлено на ревью")}>На ревью</Button>}
+          {e.status === "draft" && <Button loading={busy === "submit"} disabled={dirty} onClick={() => act("submit", () => api.emailAction(id, "submit"), "Отправлено на проверку")}>На проверку</Button>}
           {["draft", "needs_review", "approved"].includes(e.status) && <Button variant="danger" icon={<X className="h-4 w-4" />} onClick={() => setRejectOpen(true)}>Отклонить</Button>}
           {["draft", "needs_review"].includes(e.status) && <Button variant="success" icon={<Check className="h-4 w-4" />} loading={busy === "approve"} disabled={dirty} title={dirty ? "Сначала сохраните изменения" : ""} onClick={() => act("approve", () => api.emailAction(id, "approve"), "Письмо одобрено")}>Одобрить</Button>}
           {e.status === "approved" && <Button variant="primary" icon={<Send className="h-4 w-4" />} disabled={dirty || !e.readiness.can_send} onClick={() => setSendOpen(true)}>{e.readiness.will_be_live ? "Отправить" : "Симулировать отправку"}</Button>}
@@ -101,7 +101,7 @@ export default function EmailPage() {
                 </ul>
               )}
               <div className="space-y-2 border-t border-zinc-100 p-4 dark:border-zinc-800">
-                <p className="text-xs text-zinc-500">Почтовый ящик не подключён: вставьте текст полученного ответа — Reply Handler классифицирует его. {e.send_mode === "simulated" && "Письмо было симуляцией, поэтому ответ будет учтён как демо."}</p>
+                <p className="text-xs text-zinc-500">Почтовый ящик не подключён: вставьте текст полученного ответа — обработчик ответов определит его тип. {e.send_mode === "simulated" && "Письмо было симуляцией, поэтому ответ будет учтён как демо."}</p>
                 <textarea className="textarea" rows={3} value={reply} onChange={(ev) => setReply(ev.target.value)} placeholder="Текст ответа…" />
                 <Button size="sm" icon={<MessageSquare className="h-3.5 w-3.5" />} disabled={!reply.trim()} loading={busy === "reply"} onClick={async () => { if (await act("reply", () => api.reply(id, reply), "Ответ классифицирован")) setReply(""); }}>Классифицировать ответ</Button>
               </div>
@@ -128,7 +128,7 @@ export default function EmailPage() {
               {e.versions.map((v) => (
                 <li key={v.id} className="px-4 py-2 text-xs">
                   <div className="flex items-center justify-between"><span className="font-medium">v{v.version} · {ACTION[v.action] || v.action}</span><span className="text-zinc-400">{fmtDate(v.created_at)}</span></div>
-                  <div className="text-zinc-500">{v.author === "user" ? "пользователь" : "Writer Agent"} · статус {v.status}{v.note ? ` · ${v.note}` : ""}</div>
+                  <div className="text-zinc-500">{v.author === "user" ? "пользователь" : "агент-автор"} · статус {EMAIL_STATUS[v.status]?.label.toLowerCase() || v.status}{v.note ? ` · ${v.note}` : ""}</div>
                 </li>
               ))}
             </ol>
@@ -152,7 +152,7 @@ export default function EmailPage() {
   );
 }
 
-const ACTION: Record<string, string> = { created: "создано", edited: "изменено", submit: "на ревью", approve: "одобрено", reject: "отклонено", reopen: "возвращено", sent: "отправлено" };
+const ACTION: Record<string, string> = { created: "создано", edited: "изменено", submit: "на проверку", approve: "одобрено", reject: "отклонено", reopen: "возвращено", sent: "отправлено" };
 
 function Check2({ ok, text }: { ok: boolean; text: string }) {
   return <li className="flex items-center gap-2">{ok ? <Check className="h-4 w-4 text-emerald-500" /> : <X className="h-4 w-4 text-red-500" />}<span className={ok ? "" : "text-zinc-600 dark:text-zinc-400"}>{text}</span></li>;

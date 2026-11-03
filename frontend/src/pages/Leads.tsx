@@ -31,7 +31,7 @@ export default function Leads() {
 
   return (
     <div>
-      <PageHeader title="Lead Discovery" subtitle="Все компании в базе. Score показан лучший по кампаниям; подробности — в карточке."
+      <PageHeader title="Поиск лидов" subtitle="Все компании в базе. Показана лучшая оценка по кампаниям, подробности в карточке компании."
         actions={<>
           <a href={`/api/export/companies.csv${qs({ ...q, stage: undefined })}`}><Button icon={<Download className="h-4 w-4" />}>Экспорт CSV</Button></a>
           <Button icon={<Upload className="h-4 w-4" />} onClick={() => setImportOpen(true)}>Импорт CSV</Button>
@@ -54,8 +54,8 @@ export default function Leads() {
           <select className="input" value={f.country} onChange={(e) => set("country", e.target.value)} aria-label="Страна">
             <option value="">Все страны</option>{options.countries.map((i) => <option key={i}>{i}</option>)}
           </select>
-          <select className="input" value={f.min_score} onChange={(e) => set("min_score", e.target.value)} aria-label="Score">
-            <option value="">Любой score</option><option value="40">≥ 40</option><option value="60">≥ 60</option><option value="75">≥ 75</option>
+          <select className="input" value={f.min_score} onChange={(e) => set("min_score", e.target.value)} aria-label="Оценка">
+            <option value="">Любая оценка</option><option value="40">≥ 40</option><option value="60">≥ 60</option><option value="75">≥ 75</option>
           </select>
           <select className="input" value={f.data} onChange={(e) => set("data", e.target.value)} aria-label="Тип данных">
             <option value="all">Все данные</option><option value="real">Только реальные</option><option value="demo">Только демо</option>
@@ -73,13 +73,13 @@ export default function Leads() {
       <Card bodyClass="p-0">
         {loading && !data ? <Spinner /> : error ? <div className="p-4"><ErrorState error={error} retry={reload} /></div> : data!.length === 0 ? (
           active ? <Empty title="Ничего не найдено" hint="Измените или сбросьте фильтры." action={<Button onClick={() => setF(INIT)}>Сбросить</Button>} />
-            : <Empty icon={<Building2 className="h-5 w-5" />} title="В базе нет компаний" hint="Запустите Scout Agent в кампании, импортируйте CSV или добавьте компанию вручную." action={<Button variant="primary" onClick={() => setAddOpen(true)}>Добавить компанию</Button>} />
+            : <Empty icon={<Building2 className="h-5 w-5" />} title="В базе нет компаний" hint="Запустите поиск в кампании, импортируйте CSV или добавьте компанию вручную." action={<Button variant="primary" onClick={() => setAddOpen(true)}>Добавить компанию</Button>} />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="border-b border-zinc-100 dark:border-zinc-800"><tr>
                 <th className="th">Компания</th><th className="th">Отрасль</th><th className="th">Тип</th><th className="th">Гео</th>
-                <th className="th text-right">Сотр.</th><th className="th text-right">SKU</th><th className="th">ICP Fit</th><th className="th">Этап</th><th className="th text-right">Факты</th>
+                <th className="th text-right">Сотр.</th><th className="th text-right">SKU</th><th className="th">Соответствие ICP</th><th className="th">Этап</th><th className="th text-right">Факты</th>
               </tr></thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {data!.map((c) => (
