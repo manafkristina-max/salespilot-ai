@@ -13,7 +13,7 @@ export default function Settings() {
   const [v, setV] = useState<SettingsValues | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
   const toast = useToast();
-  const { refresh } = useMode();
+  const { refresh, publicDemo } = useMode();
   useEffect(() => { if (data) setV(structuredClone(data.values)); }, [data]);
 
   if (loading && !data) return <Spinner />;
@@ -31,7 +31,13 @@ export default function Settings() {
 
   return (
     <div>
-      <PageHeader title="Настройки" subtitle="ICP задаётся в каждой кампании. Здесь — модель оценки, провайдеры, согласование и логи агентов." />
+      <PageHeader title="Настройки" subtitle="ICP задаётся в каждой кампании. Здесь — модель оценки, внешние сервисы, правила согласования и журнал агентов."
+        actions={v.mode === "demo" || publicDemo ? <Button variant="danger" onClick={async () => {
+          if (!confirm("Удалить все данные и заново создать демо-кампанию?")) return;
+          try { const r = await api.resetDemo(); toast("success", `Демо-данные пересозданы. ${r.message.split(".")[0]}`); reload(); refresh(); }
+          catch (e) { toast("error", (e as Error).message); }
+        }}>Сбросить демо-данные</Button> : null} />
+      {publicDemo && <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-200"><b>Публичное демо.</b> Настройки доступны только для просмотра: изменить их можно в локальной копии проекта. Вернуть исходные демо-данные можно кнопкой «Сбросить демо-данные».</div>}
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title="Режим работы">
           <div className="grid grid-cols-2 gap-2">
@@ -46,7 +52,7 @@ export default function Settings() {
           {v.mode === "live" && !data.env.smtp_configured && <p className="mt-3 text-xs text-amber-700 dark:text-amber-400">Почта (SMTP) не настроена, поэтому даже в рабочем режиме письма будут только симулироваться.</p>}
         </Card>
 
-        <Card title={<span className="flex items-center gap-1.5"><Plug className="h-4 w-4" /> Интеграции и AI-провайдеры</span>} bodyClass="p-0">
+        <Card title={<span className="flex items-center gap-1.5"><Plug className="h-4 w-4" /> Подключения и ИИ-сервисы</span>} bodyClass="p-0">
           <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
             {data.integrations.map((i) => (
               <li key={i.id} className="flex items-start gap-3 px-4 py-2.5">

@@ -7,6 +7,6 @@ from .config import get_settings
 
 if __name__ == "__main__":
     s = get_settings()
-    if s.host not in ("127.0.0.1", "localhost", "::1"):
+    if s.host not in ("127.0.0.1", "localhost", "::1") and not s.public_demo:
         print("WARNING: SalesPilot has no authentication; bind to 127.0.0.1 unless you know what you are doing.")
     uvicorn.run(create_app(s), host=s.host, port=s.port)

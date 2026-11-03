@@ -93,7 +93,24 @@ class SalesPilot:
 
     @property
     def mode(self) -> str:
+        if self.env.public_demo:
+            return "demo"
         return self.settings.get("mode")
+
+    def reset_demo(self, full: bool = True) -> dict:
+        """Wipe all data and recreate the demo campaign. Demo mode only."""
+        if self.mode != "demo":
+            raise ServiceError("Сброс данных доступен только в демо-режиме", 409)
+        with self.db.tx() as c:
+            for table in ("campaigns", "companies", "agent_runs", "settings"):
+                c.execute(f"DELETE FROM {table}")  # leads, facts, emails… cascade
+            c.execute("DELETE FROM sqlite_sequence")
+        from .seed import seed_demo
+        return seed_demo(self, full=full)
+
+    def is_empty(self) -> bool:
+        return not self.db.scalar("SELECT COUNT(*) FROM campaigns") and \
+            not self.db.scalar("SELECT COUNT(*) FROM companies")
 
     # ------------------------------------------------------------ campaigns
 

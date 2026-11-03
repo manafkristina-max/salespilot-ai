@@ -1,6 +1,12 @@
 name: CI
 on: [push, pull_request]
 jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - run: python3 scripts/check_secrets.py
   backend:
     runs-on: ubuntu-latest
     steps:
@@ -17,3 +23,24 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
       - run: cd frontend && npm ci && npm run build
+  docker:
+    # Собирает тот же образ, что разворачивается на Render, и проходит сценарий пользователя внутри.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: true }
+      - run: docker build -t salespilot .
+      - name: Запуск контейнера с фальшивыми ключами (они не должны работать и утекать)
+        run: |
+          docker run -d --name sp -p 8000:10000 -e PORT=10000 \
+            -e ANTHROPIC_API_KEY=sk-ant-ci-fake-key -e LIVE_SENDING_ENABLED=true salespilot
+          for i in $(seq 1 60); do curl -fs http://127.0.0.1:8000/api/health && break; sleep 1; done
+      - run: python3 scripts/smoke_test.py http://127.0.0.1:8000
+      - name: Публичное демо заблокировано и без утечек
+        run: |
+          curl -fs http://127.0.0.1:8000/api/health | grep -q '"public_demo":true'
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X PUT -H 'content-type: application/json' -d '"live"' http://127.0.0.1:8000/api/settings/mode)" = 403
+          ! curl -s http://127.0.0.1:8000/api/settings | grep -q 'ci-fake'
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/api/nope)" = 404
+      - if: always()
+        run: docker logs sp | tail -50

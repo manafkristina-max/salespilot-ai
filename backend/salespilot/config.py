@@ -33,7 +33,13 @@ def _bool(name: str, default: bool = False) -> bool:
 class Settings:
     db_path: Path = field(default_factory=lambda: Path(os.getenv("SALESPILOT_DB", str(ROOT / "data" / "salespilot.db"))))
     host: str = field(default_factory=lambda: os.getenv("SALESPILOT_HOST", "127.0.0.1"))
-    port: int = field(default_factory=lambda: int(os.getenv("SALESPILOT_PORT", "8000")))
+    # PORT is what hosting platforms (Render, Railway, HF Spaces) set.
+    port: int = field(default_factory=lambda: int(os.getenv("SALESPILOT_PORT") or os.getenv("PORT") or "8000"))
+    # Public demo: a deployed, read-mostly showcase. Forces demo mode and turns
+    # every external integration off, whatever else the environment says.
+    public_demo: bool = field(default_factory=lambda: _bool("SALESPILOT_PUBLIC_DEMO", False))
+    # Fill an empty database with the demo campaign on startup.
+    seed_on_start: bool = field(default_factory=lambda: _bool("SALESPILOT_SEED_ON_START", False))
     # LLM
     llm_provider: str = field(default_factory=lambda: os.getenv("LLM_PROVIDER", "mock").strip().lower())
     anthropic_api_key: str = field(default_factory=lambda: os.getenv("ANTHROPIC_API_KEY", ""))
@@ -48,6 +54,15 @@ class Settings:
     live_sending_enabled: bool = field(default_factory=lambda: _bool("LIVE_SENDING_ENABLED", False))
     # Live research = fetching public company websites (free, no API key).
     live_research_enabled: bool = field(default_factory=lambda: _bool("LIVE_RESEARCH_ENABLED", False))
+
+    def __post_init__(self):
+        if self.public_demo:
+            self.llm_provider = "mock"
+            self.anthropic_api_key = ""
+            self.smtp_host = self.smtp_user = self.smtp_password = self.smtp_from = ""
+            self.live_sending_enabled = False
+            self.live_research_enabled = False
+            self.seed_on_start = True
 
     @property
     def smtp_configured(self) -> bool:

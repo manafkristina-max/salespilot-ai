@@ -1,0 +1,18 @@
+# Render Blueprint: публичное демо SalesPilot AI.
+# Подключение: Render → New → Blueprint → выбрать репозиторий salespilot-ai.
+# Бесплатный план: постоянная ссылка https://<имя>.onrender.com, засыпает после
+# ~15 минут без запросов (первое открытие после сна ~1 минута). Диска нет, поэтому
+# при каждом перезапуске данные возвращаются к исходному демо — для витрины это плюс.
+services:
+  - type: web
+    name: salespilot-ai
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      # Жёстко включает демо: внешние сервисы выключены, даже если кто-то добавит ключи.
+      - key: SALESPILOT_PUBLIC_DEMO
+        value: "true"

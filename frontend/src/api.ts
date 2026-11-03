@@ -131,7 +131,7 @@ export type Integration = { id: string; name: string; status: string; detail: st
 
 export type SettingsResponse = {
   values: SettingsValues; integrations: Integration[];
-  env: { llm_provider: string; live_research_enabled: boolean; live_sending_enabled: boolean; smtp_configured: boolean };
+  env: { llm_provider: string; live_research_enabled: boolean; live_sending_enabled: boolean; smtp_configured: boolean; public_demo: boolean };
 };
 
 export class ApiError extends Error {
@@ -202,5 +202,7 @@ export const api = {
   analytics: (f: Record<string, string | number | null>) => request<Analytics>("GET", `/api/analytics${qs(f)}`),
   settings: () => request<SettingsResponse>("GET", "/api/settings"),
   putSetting: (key: string, value: unknown) => request<{ value: unknown }>("PUT", `/api/settings/${key}`, value),
+  health: () => request<{ ok: boolean; mode: "demo" | "live"; public_demo: boolean }>("GET", "/api/health"),
+  resetDemo: () => request<{ message: string }>("POST", "/api/demo/reset"),
   runs: (agent = "") => request<AgentRun[]>("GET", `/api/agent-runs${qs({ agent })}`),
 };

@@ -13,8 +13,8 @@ const NAV = [
   { to: "/settings", label: "Настройки", icon: Settings },
 ];
 
-type ModeCtx = { mode: "demo" | "live" | null; refresh: () => void };
-const Ctx = createContext<ModeCtx>({ mode: null, refresh: () => {} });
+type ModeCtx = { mode: "demo" | "live" | null; publicDemo: boolean; refresh: () => void };
+const Ctx = createContext<ModeCtx>({ mode: null, publicDemo: false, refresh: () => {} });
 export const useMode = () => useContext(Ctx);
 
 function useTheme() {
@@ -34,11 +34,12 @@ export function Layout() {
   const [dark, setDark] = useTheme();
   const [mode, setMode] = useState<"demo" | "live" | null>(null);
   const loc = useLocation();
-  const refresh = () => api.dashboard().then((d) => setMode(d.mode)).catch(() => setMode(null));
+  const [publicDemo, setPublicDemo] = useState(false);
+  const refresh = () => api.health().then((h) => { setMode(h.mode); setPublicDemo(h.public_demo); }).catch(() => setMode(null));
   useEffect(() => { refresh(); }, [loc.pathname]);
 
   return (
-    <Ctx.Provider value={{ mode, refresh }}>
+    <Ctx.Provider value={{ mode, publicDemo, refresh }}>
       <div className="flex min-h-full">
         <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-zinc-200 bg-white px-3 py-4 dark:border-zinc-800 dark:bg-zinc-900 md:flex">
           <div className="mb-6 flex items-center gap-2 px-2">
@@ -59,7 +60,7 @@ export function Layout() {
               </NavLink>
             ))}
           </nav>
-          <ModeBox mode={mode} />
+          <ModeBox mode={mode} publicDemo={publicDemo} />
           <button onClick={() => setDark(!dark)} className="mt-2 flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800">
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />} {dark ? "Светлая тема" : "Тёмная тема"}
           </button>
@@ -73,7 +74,7 @@ export function Layout() {
   );
 }
 
-function ModeBox({ mode }: { mode: string | null }) {
+function ModeBox({ mode, publicDemo }: { mode: string | null; publicDemo: boolean }) {
   if (!mode) return null;
   return (
     <NavLink to="/settings" className="mb-1 rounded-lg border border-zinc-200 p-2.5 text-xs dark:border-zinc-800">
@@ -81,7 +82,7 @@ function ModeBox({ mode }: { mode: string | null }) {
         <span className="font-medium">Режим</span>
         {mode === "demo" ? <Badge color="amber">Демо</Badge> : <Badge color="green">Рабочий</Badge>}
       </div>
-      <p className="mt-1 text-zinc-500">{mode === "demo" ? "Реальная отправка и сетевые запросы выключены." : "Внешние сервисы работают, только если настроены в .env."}</p>
+      <p className="mt-1 text-zinc-500">{publicDemo ? "Публичное демо: данные вымышлены, отправка и внешние сервисы отключены, настройки только для просмотра." : mode === "demo" ? "Реальная отправка и сетевые запросы выключены." : "Внешние сервисы работают, только если настроены в .env."}</p>
     </NavLink>
   );
 }

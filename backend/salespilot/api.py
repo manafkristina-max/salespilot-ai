@@ -128,6 +128,9 @@ def create_app(settings: Settings | None = None, db: Database | None = None) -> 
     sp = SalesPilot(db, settings)
     app = FastAPI(title="SalesPilot AI", version="0.1.0")
     app.state.sp = sp
+    if settings.seed_on_start and sp.is_empty():
+        from .seed import seed_demo
+        log.info("Seeding demo data: %s", seed_demo(sp, full=True)["message"])
 
     @app.exception_handler(ServiceError)
     async def _service_error(_: Request, exc: ServiceError):
@@ -141,7 +144,7 @@ def create_app(settings: Settings | None = None, db: Database | None = None) -> 
     # ---- health / dashboard
     @app.get("/api/health")
     def health():
-        return {"ok": True, "mode": sp.mode}
+        return {"ok": True, "mode": sp.mode, "public_demo": settings.public_demo}
 
     @app.get("/api/dashboard")
     def dashboard():
@@ -329,10 +332,13 @@ def create_app(settings: Settings | None = None, db: Database | None = None) -> 
         return {"values": sp.settings.all(), "integrations": sp.integrations(),
                 "env": {"llm_provider": settings.llm_provider, "live_research_enabled": settings.live_research_enabled,
                         "live_sending_enabled": settings.live_sending_enabled,
-                        "smtp_configured": settings.smtp_configured}}
+                        "smtp_configured": settings.smtp_configured, "public_demo": settings.public_demo}}
 
     @app.put("/api/settings/{key}")
     def put_setting(key: str, value: Any = Body(...)):
+        if settings.public_demo:
+            raise ServiceError("В публичном демо настройки доступны только для просмотра. "
+                               "Запустите проект локально, чтобы их менять.", 403)
         if key not in DEFAULTS:
             raise HTTPException(404, "Неизвестная настройка")
         if key == "mode" and value not in ("demo", "live"):
@@ -347,6 +353,10 @@ def create_app(settings: Settings | None = None, db: Database | None = None) -> 
         sp.settings.set(key, value)
         return {"key": key, "value": sp.settings.get(key)}
 
+    @app.post("/api/demo/reset")
+    def demo_reset():
+        return sp.reset_demo(full=True)
+
     @app.get("/api/agent-runs")
     def runs(agent: str = "", limit: int = Query(200, le=1000)):
         return sp.agent_runs(agent, limit)
@@ -358,6 +368,8 @@ def create_app(settings: Settings | None = None, db: Database | None = None) -> 
 
         @app.get("/{path:path}", include_in_schema=False)
         def spa(path: str):
+            if path == "api" or path.startswith("api/"):
+                return JSONResponse({"detail": "Не найдено"}, status_code=404)
             target = dist / path
             if path and target.is_file() and dist in target.resolve().parents:
                 return FileResponse(target)

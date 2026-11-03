@@ -40,20 +40,26 @@ def full_scenario(sp: SalesPilot) -> None:
     sp.set_email_status(third["id"], "approve")
 
 
-def main() -> None:
-    s = get_settings()
-    sp = SalesPilot(Database(s.db_path), s)
+def seed_demo(sp: SalesPilot, full: bool = True) -> dict:
+    """Create the demo campaign and run the agents. Returns a short summary."""
     c = sp.create_campaign({"name": "E-commerce бренды — Rich Content / PIM",
                             "description": "Демо-кампания: бренды с большим ассортиментом на маркетплейсах",
                             "icp": ICP})
     scout = sp.scout(c["id"], "demo")
     run = sp.run_pipeline(c["id"])
-    print(f"Кампания #{c['id']}: {scout['message']}")
-    if "--full" in sys.argv:
+    if full:
         full_scenario(sp)
-        print("Демо-сценарий: 1 письмо — симуляция отправки и демо-ответ, 1 на ревью, 1 одобрено")
-    print(f"Агенты: квалифицировано {run['qualified']}, не подходят {run['disqualified']}, черновиков {run['drafted']}")
-    print(f"Откройте http://{s.host}:{s.port}")
+    message = (f"Кампания #{c['id']}: {scout['message']}. Агенты: квалифицировано {run['qualified']}, "
+               f"не подходят {run['disqualified']}, черновиков {run['drafted']}"
+               + (". Демо-сценарий: 1 письмо — симуляция отправки и демо-ответ, 1 на проверке, 1 одобрено"
+                  if full else ""))
+    return {"campaign_id": c["id"], "message": message}
+
+
+def main() -> None:
+    s = get_settings()
+    sp = SalesPilot(Database(s.db_path), s)
+    print(seed_demo(sp, full="--full" in sys.argv)["message"])
 
 
 if __name__ == "__main__":

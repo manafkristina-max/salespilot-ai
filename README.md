@@ -5,7 +5,7 @@
 **Находит компании-клиентов, объясняет, почему они подходят, и пишет персональные письма со ссылками на источники.
 Ничего не отправляет без одобрения человека.**
 
-[**Кейс-презентация**](https://manafkristina-max.github.io/salespilot-ai/) · [Продуктовый кейс](CASE_STUDY.md) · [Архитектура](ARCHITECTURE.md) · [Сценарий демо](DEMO_SCRIPT.md)
+[**Кейс-презентация**](https://manafkristina-max.github.io/salespilot-ai/) · [**Как показывать (DEMO.md)**](DEMO.md) · [Продуктовый кейс](CASE_STUDY.md) · [Архитектура](ARCHITECTURE.md) · [Сценарий демо](DEMO_SCRIPT.md)
 
 [![CI](https://github.com/manafkristina-max/salespilot-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/manafkristina-max/salespilot-ai/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
@@ -55,9 +55,13 @@ cd salespilot-ai
 ./start.sh --demo
 ```
 
-Откройте **http://127.0.0.1:8000**. Флаг `--demo` при пустой базе создаёт демо-кампанию и запускает агентов: 13 вымышленных компаний, 5 подходящих лидов, 5 черновиков писем. Без флага откроется пустой продукт, и кампанию можно создать в интерфейсе.
+Браузер сам откроет **http://127.0.0.1:8000**. Флаг `--demo` при пустой базе создаёт демо-кампанию и запускает агентов: 13 вымышленных компаний, 5 подходящих лидов, 5 писем на разных этапах. Без флага откроется пустой продукт, и кампанию можно создать в интерфейсе.
 
-Остановка: `Ctrl+C`. Начать заново: удалить `data/salespilot.db`.
+- `./start.sh --reset` — сохранить текущую базу в `data/backups/` и начать с чистого демо.
+- `SALESPILOT_PORT=8010 ./start.sh --demo` — другой порт.
+- Остановка: `Ctrl+C`.
+
+Что показывать и сценарий на 5 минут — в [DEMO.md](DEMO.md).
 
 <details>
 <summary>Ручная установка, разработка, тесты</summary>
@@ -76,11 +80,13 @@ cd backend && .venv/bin/python -m salespilot.seed  # по желанию: дем
 Тесты:
 
 ```bash
-cd backend && .venv/bin/python -m pytest -q    # 20 сценариев через HTTP API
+cd backend && .venv/bin/python -m pytest -q    # 24 сценария через HTTP API
 cd frontend && npm run typecheck
+python3 scripts/smoke_test.py                  # сценарий пользователя на запущенном приложении
+python3 scripts/check_secrets.py               # нет ли ключей и .env в файлах и истории git
 ```
 
-Те же проверки запускаются в GitHub Actions при каждом push.
+В GitHub Actions при каждом push запускаются тесты, сборка интерфейса, проверка секретов и сборка Docker-образа со smoke-тестом внутри контейнера.
 </details>
 
 ## Экраны
@@ -114,6 +120,10 @@ cd frontend && npm run typecheck
 
 Сервер доступен только с этого компьютера (`127.0.0.1`): входа по паролю в прототипе нет.
 
+## Публичное демо
+
+`Dockerfile` и `render.yaml` готовят публичную версию для [Render](https://render.com) (бесплатный план, постоянная HTTPS-ссылка). В ней принудительно включён публичный демо-режим (`SALESPILOT_PUBLIC_DEMO=true`): внешние сервисы выключены, даже если задать ключи; настройки только для просмотра; база заполняется демо-данными при старте и сбрасывается при перезапуске. Подробности и ограничения — в [DEMO.md](DEMO.md#6-публичное-демо).
+
 ## На чём основан
 
 Перед разработкой проведён аудит открытого проекта [Harvey](https://github.com/ethanplusai/harvey) (автономный агент для продаж, лицензия MIT). Он подключён как git submodule в `vendor/harvey` и не изменяется. Через [адаптер](backend/salespilot/harvey_adapter.py) используются его модули безопасности: определение технологий сайта, защищённая загрузка страниц, защита от prompt-injection и сверка со стоп-листом. Бесконечный цикл работы, зависимость от подписки Claude и автоматическая рассылка не используются. Подробности в [ARCHITECTURE.md](ARCHITECTURE.md).
@@ -129,7 +139,7 @@ backend/salespilot/   API, агенты (service.py), оценка, внешни
 backend/tests/        автотесты
 frontend/src/         интерфейс на React
 docs/                 кейс-презентация (GitHub Pages) и скриншоты
-scripts/              make_screenshots.sh — пересъёмка скриншотов
+scripts/              smoke_test.py, check_secrets.py, make_screenshots.sh, запуск двойным кликом
 vendor/harvey/        Harvey (submodule)
 ```
 

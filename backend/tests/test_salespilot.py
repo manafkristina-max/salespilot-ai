@@ -277,3 +277,39 @@ def test_validation_errors(client):
     assert client.put("/api/settings/qualify_threshold", json=150).status_code == 400
     assert client.put("/api/settings/scoring_weights", json={"industry": -1}).status_code == 400
     assert client.get("/api/companies/99999").status_code == 404
+
+
+def test_unknown_api_path_is_json_404(client):
+    r = client.get("/api/does-not-exist")
+    assert r.status_code == 404
+
+
+def test_public_demo_locks_settings_and_integrations(tmp_path, monkeypatch):
+    for k, v in {"SALESPILOT_PUBLIC_DEMO": "true", "LIVE_SENDING_ENABLED": "true", "LLM_PROVIDER": "anthropic",
+                 "ANTHROPIC_API_KEY": "sk-test-not-real", "SMTP_HOST": "smtp.example.invalid"}.items():
+        monkeypatch.setenv(k, v)
+    s = Settings()
+    s.db_path = tmp_path / "p.db"
+    assert s.public_demo and not s.live_sending_enabled and s.llm_provider == "mock" and not s.anthropic_api_key
+    client = TestClient(create_app(s, Database(s.db_path)))
+    assert client.get("/api/health").json() == {"ok": True, "mode": "demo", "public_demo": True}
+    assert client.get("/api/campaigns").json()  # seeded on start
+    assert client.put("/api/settings/mode", json="live").status_code == 403
+    assert client.get("/api/dashboard").json()["mode"] == "demo"
+    assert "sk-test" not in client.get("/api/settings").text
+
+
+def test_demo_reset_restores_clean_demo(client):
+    c = campaign(client)
+    client.post("/api/companies", json={"name": "Temp", "website": "temp.test"})
+    r = client.post("/api/demo/reset").json()
+    assert "Кампания" in r["message"]
+    camps = client.get("/api/campaigns").json()
+    assert len(camps) == 1 and camps[0]["name"] != c["name"]
+    assert client.get("/api/companies?search=Temp").json() == []
+    assert client.get("/api/emails?status=sent").json()  # full scenario
+
+
+def test_demo_reset_refused_in_live_mode(client):
+    client.put("/api/settings/mode", json="live")
+    assert client.post("/api/demo/reset").status_code == 409
