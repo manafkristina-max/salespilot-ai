@@ -1,0 +1,140 @@
+{
+  "_notice": "ДЕМОНСТРАЦИОННЫЕ ДАННЫЕ. Все компании, факты и ссылки вымышлены. Домены в зоне .test зарезервированы (RFC 2606) и не существуют. Контактные лица и email-адреса намеренно отсутствуют.",
+  "companies": [
+    {
+      "name": "Lumio Electronics", "domain": "lumio-electronics.test", "industry": "Электроника", "company_type": "Бренд-производитель",
+      "country": "Россия", "city": "Москва", "employees": 420, "sku_count": 1800, "revenue_band": "1–5 млрд ₽",
+      "description": "Бренд бытовой электроники и аксессуаров, продажи через маркетплейсы и федеральные сети.",
+      "tech": ["1C-Bitrix", "Google Tag Manager", "Яндекс.Метрика"],
+      "facts": [
+        {"kind": "pain", "text": "Ассортимент 1 800 SKU, карточки на маркетплейсах заполняются вручную из Excel", "path": "/partners", "evidence": "Обновляем карточки товаров вручную из Excel-выгрузки"},
+        {"kind": "signal", "text": "Открыта вакансия контент-менеджера маркетплейсов", "path": "/careers", "evidence": "Контент-менеджер маркетплейсов (Ozon, Wildberries)"},
+        {"kind": "info", "text": "На сайте есть раздел «Где купить» со списком из 12 партнёров-ритейлеров", "path": "/where-to-buy", "evidence": "Где купить: 12 партнёров"}
+      ]
+    },
+    {
+      "name": "Северная Косметика", "domain": "severnaya-kosmetika.test", "industry": "Косметика", "company_type": "Бренд-производитель",
+      "country": "Россия", "city": "Санкт-Петербург", "employees": 160, "sku_count": 640, "revenue_band": "500 млн–1 млрд ₽",
+      "description": "Производитель уходовой косметики, собственное производство, продажи в сетях и онлайн.",
+      "tech": ["Shopify", "Google Analytics", "Klaviyo"],
+      "facts": [
+        {"kind": "pain", "text": "Описания товаров на маркетплейсах отличаются от сайта бренда, инфографика отсутствует у половины SKU", "path": "/catalog", "evidence": "инфографика доступна для части линеек"},
+        {"kind": "signal", "text": "Компания объявила о выходе в сеть «Демо-Ритейл» в 2026 году", "path": "/news/retail-2026", "evidence": "новая сеть-партнёр с 2026 года"}
+      ]
+    },
+    {
+      "name": "Kroha Kids", "domain": "kroha-kids.test", "industry": "Детские товары", "company_type": "Бренд-производитель",
+      "country": "Россия", "city": "Казань", "employees": 85, "sku_count": 950, "revenue_band": "100–500 млн ₽",
+      "description": "Бренд детской одежды и аксессуаров.",
+      "tech": ["WooCommerce", "Яндекс.Метрика"],
+      "facts": [
+        {"kind": "pain", "text": "Ассортимент обновляется 4 раза в год, атрибуты товаров ведутся в нескольких таблицах", "path": "/about", "evidence": "4 коллекции в год"},
+        {"kind": "info", "text": "Продажи через собственный интернет-магазин и маркетплейсы", "path": "/", "evidence": "Покупайте на сайте и на маркетплейсах"}
+      ]
+    },
+    {
+      "name": "TerraSport", "domain": "terrasport.test", "industry": "Спорттовары", "company_type": "Дистрибьютор",
+      "country": "Казахстан", "city": "Алматы", "employees": 230, "sku_count": 5200, "revenue_band": "1–5 млрд ₽",
+      "description": "Дистрибьютор спортивных брендов в Центральной Азии.",
+      "tech": ["Magento", "Google Tag Manager"],
+      "facts": [
+        {"kind": "pain", "text": "5 200 SKU от 30 брендов, данные о товарах поступают от поставщиков в разных форматах", "path": "/brands", "evidence": "более 30 брендов-партнёров"},
+        {"kind": "signal", "text": "Запущен B2B-портал для дилеров", "path": "/b2b", "evidence": "B2B-портал для дилеров"}
+      ]
+    },
+    {
+      "name": "Дом Уюта", "domain": "dom-uyuta.test", "industry": "Товары для дома", "company_type": "Ритейлер",
+      "country": "Россия", "city": "Екатеринбург", "employees": 1300, "sku_count": 24000, "revenue_band": "5–20 млрд ₽",
+      "description": "Региональная сеть магазинов товаров для дома.",
+      "tech": ["1C-Bitrix", "Яндекс.Метрика"],
+      "facts": [
+        {"kind": "pain", "text": "24 000 SKU, поставщики присылают контент в разных форматах", "path": "/suppliers", "evidence": "требования к контенту поставщиков"},
+        {"kind": "info", "text": "Сеть из 48 магазинов в Уральском регионе", "path": "/stores", "evidence": "48 магазинов"}
+      ]
+    },
+    {
+      "name": "Brewline", "domain": "brewline.test", "industry": "FMCG", "company_type": "Бренд-производитель",
+      "country": "Беларусь", "city": "Минск", "employees": 600, "sku_count": 120, "revenue_band": "1–5 млрд ₽",
+      "description": "Производитель напитков, представлен в розничных сетях.",
+      "tech": ["WordPress", "Google Analytics"],
+      "facts": [
+        {"kind": "pain", "text": "Посетители сайта бренда не находят, в каких магазинах купить продукцию", "path": "/faq", "evidence": "Где купить нашу продукцию? Уточняйте в магазинах"},
+        {"kind": "signal", "text": "Запуск новой линейки продуктов с рекламной кампанией", "path": "/news/launch", "evidence": "новая линейка и рекламная кампания"}
+      ]
+    },
+    {
+      "name": "Optima Tools", "domain": "optima-tools.test", "industry": "DIY и инструменты", "company_type": "Бренд-производитель",
+      "country": "Россия", "city": "Нижний Новгород", "employees": 310, "sku_count": 3100, "revenue_band": "1–5 млрд ₽",
+      "description": "Бренд электроинструмента, продажи через DIY-сети и маркетплейсы.",
+      "tech": ["1C-Bitrix", "Google Tag Manager"],
+      "facts": [
+        {"kind": "pain", "text": "Технические характеристики товаров расходятся между сайтом и карточками у ритейлеров", "path": "/catalog", "evidence": "характеристики могут отличаться у партнёров"},
+        {"kind": "info", "text": "На сайте есть раздел «Где купить» с картой дилеров", "path": "/dealers", "evidence": "карта дилеров"},
+        {"kind": "signal", "text": "Вакансия менеджера по работе с маркетплейсами", "path": "/careers", "evidence": "менеджер по маркетплейсам"}
+      ]
+    },
+    {
+      "name": "Velora Fashion", "domain": "velora-fashion.test", "industry": "Fashion", "company_type": "Бренд-производитель",
+      "country": "Россия", "city": "Москва", "employees": 55, "sku_count": 400, "revenue_band": "100–500 млн ₽",
+      "description": "Бренд женской одежды, D2C и маркетплейсы.",
+      "tech": ["Tilda", "Яндекс.Метрика"],
+      "facts": [
+        {"kind": "pain", "text": "Низкая конверсия карточек на маркетплейсах упоминается в интервью основателя", "path": "/press", "evidence": "конверсия карточек — наша главная задача"}
+      ]
+    },
+    {
+      "name": "PetJoy", "domain": "petjoy.test", "industry": "Зоотовары", "company_type": "Ритейлер",
+      "country": "Россия", "city": "Новосибирск", "employees": 140, "sku_count": 8000, "revenue_band": "500 млн–1 млрд ₽",
+      "description": "Онлайн-магазин и сеть зоомагазинов.",
+      "tech": ["Shopify", "Google Analytics"],
+      "facts": [
+        {"kind": "info", "text": "8 000 SKU в каталоге интернет-магазина", "path": "/catalog", "evidence": "8000 товаров"}
+      ]
+    },
+    {
+      "name": "Aqua Pure", "domain": "aqua-pure.test", "industry": "Бытовая техника", "company_type": "Бренд-производитель",
+      "country": "Узбекистан", "city": "Ташкент", "employees": 75, "sku_count": 60, "revenue_band": "100–500 млн ₽",
+      "description": "Производитель фильтров для воды.",
+      "tech": [],
+      "facts": []
+    },
+    {
+      "name": "GreenLeaf Market", "domain": "greenleaf-market.test", "industry": "Продукты питания", "company_type": "Ритейлер",
+      "country": "Россия", "city": "Краснодар", "employees": 900, "sku_count": 15000, "revenue_band": "5–20 млрд ₽",
+      "description": "Сеть супермаркетов.",
+      "tech": ["1C-Bitrix"],
+      "facts": [
+        {"kind": "info", "text": "Запущена доставка из 30 супермаркетов", "path": "/delivery", "evidence": "доставка из 30 магазинов"}
+      ]
+    },
+    {
+      "name": "NordHome Appliances", "domain": "nordhome.test", "industry": "Бытовая техника", "company_type": "Бренд-производитель",
+      "country": "Россия", "city": "Москва", "employees": 780, "sku_count": 2600, "revenue_band": "5–20 млрд ₽",
+      "description": "Бренд крупной и мелкой бытовой техники.",
+      "tech": ["Next.js", "Google Tag Manager", "HubSpot"],
+      "facts": [
+        {"kind": "pain", "text": "Rich-контент (A+) есть только для 15% моделей на маркетплейсах", "path": "/investors", "evidence": "развитие rich-контента на маркетплейсах"},
+        {"kind": "pain", "text": "Партнёрские сети используют устаревшие описания товаров", "path": "/partners", "evidence": "актуальные описания для партнёров"},
+        {"kind": "info", "text": "Раздел «Где купить» ведёт на 20 онлайн-ритейлеров", "path": "/where-to-buy", "evidence": "20 онлайн-магазинов"}
+      ]
+    },
+    {
+      "name": "Craft & Co", "domain": "craft-and-co.test", "industry": "Хобби и творчество", "company_type": "Маркетплейс-селлер",
+      "country": "Армения", "city": "Ереван", "employees": 12, "sku_count": 300, "revenue_band": "до 100 млн ₽",
+      "description": "Небольшой селлер товаров для творчества.",
+      "tech": ["Tilda"],
+      "facts": [
+        {"kind": "info", "text": "Продаёт только через один маркетплейс", "path": "/", "evidence": "мы на маркетплейсе"}
+      ]
+    },
+    {
+      "name": "Медтех Плюс", "domain": "medtech-plus.test", "industry": "Медицинские изделия", "company_type": "Дистрибьютор",
+      "country": "Россия", "city": "Самара", "employees": 200, "sku_count": 4100, "revenue_band": "1–5 млрд ₽",
+      "description": "Дистрибьютор медицинских изделий для аптечных сетей.",
+      "tech": ["WordPress"],
+      "facts": [
+        {"kind": "pain", "text": "Аптечные сети требуют карточки товаров в собственных шаблонах", "path": "/partners", "evidence": "шаблоны карточек для сетей"}
+      ]
+    }
+  ]
+}

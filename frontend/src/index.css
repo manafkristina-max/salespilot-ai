@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+.dark { color-scheme: dark; }
+html, body, #root { height: 100%; }
+body { @apply bg-zinc-50 text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100; font-feature-settings: "cv11", "ss01"; }
+
+@layer components {
+  .card { @apply rounded-xl border border-zinc-200 bg-white shadow-card dark:border-zinc-800 dark:bg-zinc-900; }
+  .input { @apply h-9 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm outline-none transition placeholder:text-zinc-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-zinc-700 dark:bg-zinc-900; }
+  .textarea { @apply w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-zinc-700 dark:bg-zinc-900; }
+  .label { @apply mb-1 block text-xs font-medium text-zinc-600 dark:text-zinc-400; }
+  .th { @apply px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-zinc-500; }
+  .td { @apply px-3 py-2.5 text-sm; }
+}
