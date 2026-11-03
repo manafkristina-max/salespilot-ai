@@ -5,7 +5,7 @@
 **Находит компании-клиентов, объясняет, почему они подходят, и пишет персональные письма со ссылками на источники.
 Ничего не отправляет без одобрения человека.**
 
-[**Кейс-презентация**](https://manafkristina-max.github.io/salespilot-ai/) · [**Как показывать (DEMO.md)**](DEMO.md) · [Продуктовый кейс](CASE_STUDY.md) · [Архитектура](ARCHITECTURE.md) · [Сценарий демо](DEMO_SCRIPT.md)
+[**Онлайн-демо**](https://manafkristina-max.github.io/salespilot-ai/app/) · [**Кейс-презентация**](https://manafkristina-max.github.io/salespilot-ai/) · [**Как показывать (DEMO.md)**](DEMO.md) · [Продуктовый кейс](CASE_STUDY.md) · [Архитектура](ARCHITECTURE.md) · [Сценарий демо](DEMO_SCRIPT.md)
 
 [![CI](https://github.com/manafkristina-max/salespilot-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/manafkristina-max/salespilot-ai/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
@@ -45,7 +45,11 @@
 | Агент отправки | Отправляет только одобренное письмо и только после подтверждения |
 | Обработчик ответов | Определяет тип ответа (интерес, возражение, отказ, отписка); отписавшихся добавляет в стоп-лист |
 
-## Попробовать за 2 минуты
+## Попробовать онлайн
+
+**https://manafkristina-max.github.io/salespilot-ai/app/** — без регистрации и установки. Настоящий backend (FastAPI, SQLite, модули Harvey) запускается прямо в браузере на [Pyodide](https://pyodide.org) (Python на WebAssembly). Первая загрузка — около 20 секунд, дальше быстрее. У каждого посетителя своя копия данных, она хранится в браузере. Сбросить данные можно в «Настройках».
+
+## Запустить у себя за 2 минуты
 
 Нужны **Python 3.11+**, **Node.js 18+** и **git**. Ключи, почта и платные сервисы не нужны.
 
@@ -122,7 +126,7 @@ python3 scripts/check_secrets.py               # нет ли ключей и .en
 
 ## Публичное демо
 
-`Dockerfile` и `render.yaml` готовят публичную версию для [Render](https://render.com) (бесплатный план, постоянная HTTPS-ссылка). В ней принудительно включён публичный демо-режим (`SALESPILOT_PUBLIC_DEMO=true`): внешние сервисы выключены, даже если задать ключи; настройки только для просмотра; база заполняется демо-данными при старте и сбрасывается при перезапуске. Подробности и ограничения — в [DEMO.md](DEMO.md#6-публичное-демо).
+Основное онлайн-демо работает на GitHub Pages (см. выше), его собирает `scripts/build_web_demo.sh` и публикует workflow `pages.yml`. Как запасной вариант с настоящим сервером, `Dockerfile` и `render.yaml` готовят версию для [Render](https://render.com) (бесплатный план, постоянная HTTPS-ссылка). В ней принудительно включён публичный демо-режим (`SALESPILOT_PUBLIC_DEMO=true`): внешние сервисы выключены, даже если задать ключи; настройки только для просмотра; база заполняется демо-данными при старте и сбрасывается при перезапуске. Подробности и ограничения — в [DEMO.md](DEMO.md#6-публичное-демо).
 
 ## На чём основан
 

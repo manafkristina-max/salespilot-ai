@@ -1,7 +1,7 @@
 import { BarChart3, Building2, LayoutDashboard, Mail, Megaphone, Moon, Settings, Sun } from "lucide-react";
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { api } from "../api";
+import { api, STATIC_DEMO } from "../api";
 import { Badge, cx } from "./ui";
 
 const NAV = [
@@ -82,7 +82,7 @@ function ModeBox({ mode, publicDemo }: { mode: string | null; publicDemo: boolea
         <span className="font-medium">Режим</span>
         {mode === "demo" ? <Badge color="amber">Демо</Badge> : <Badge color="green">Рабочий</Badge>}
       </div>
-      <p className="mt-1 text-zinc-500">{publicDemo ? "Публичное демо: данные вымышлены, отправка и внешние сервисы отключены, настройки только для просмотра." : mode === "demo" ? "Реальная отправка и сетевые запросы выключены." : "Внешние сервисы работают, только если настроены в .env."}</p>
+      <p className="mt-1 text-zinc-500">{STATIC_DEMO ? "Онлайн-демо: backend работает в вашем браузере, данные вымышлены и видны только вам." : publicDemo ? "Публичное демо: данные вымышлены, отправка и внешние сервисы отключены, настройки только для просмотра." : mode === "demo" ? "Реальная отправка и сетевые запросы выключены." : "Внешние сервисы работают, только если настроены в .env."}</p>
     </NavLink>
   );
 }

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import sys
 import threading
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -162,7 +163,8 @@ class Database:
         self._conn = sqlite3.connect(self.path, check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA foreign_keys = ON")
-        if self.path != ":memory:":
+        # WAL needs shared memory, which the in-browser (Pyodide/emscripten) build lacks.
+        if self.path != ":memory:" and sys.platform != "emscripten":
             self._conn.execute("PRAGMA journal_mode = WAL")
         self._conn.executescript(SCHEMA)
         self._conn.commit()

@@ -139,6 +139,12 @@ export class ApiError extends Error {
   constructor(message: string, status: number) { super(message); this.status = status; }
 }
 
+// In the static online demo the backend runs in the browser (see staticDemo.ts).
+export const STATIC_DEMO = import.meta.env.VITE_STATIC_DEMO === "1";
+const doFetch: (url: string, init: RequestInit) => Promise<Response> = STATIC_DEMO
+  ? (url, init) => import("./staticDemo").then((m) => m.browserFetch(url, init))
+  : (url, init) => fetch(url, init);
+
 async function request<T>(method: string, url: string, body?: unknown, isForm = false): Promise<T> {
   const init: RequestInit = { method, headers: {} };
   if (body !== undefined) {
@@ -146,7 +152,7 @@ async function request<T>(method: string, url: string, body?: unknown, isForm = 
     else { init.body = JSON.stringify(body); (init.headers as Record<string, string>)["Content-Type"] = "application/json"; }
   }
   let res: Response;
-  try { res = await fetch(url, init); } catch { throw new ApiError("Сервер недоступен. Запущен ли backend?", 0); }
+  try { res = await doFetch(url, init); } catch { throw new ApiError("Сервер недоступен. Запущен ли backend?", 0); }
   if (res.status === 204) return undefined as T;
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {

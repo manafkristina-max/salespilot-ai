@@ -94,3 +94,7 @@ draft ──submit──▶ needs_review ──approve──▶ approved ──s
 ## Развёртывание
 
 `Dockerfile` (multi-stage: сборка UI на Node 22, Harvey из submodule или с GitHub на закреплённом коммите, Python 3.13 slim, непривилегированный пользователь) и `render.yaml` для Render. Переменная `SALESPILOT_PUBLIC_DEMO=true` принудительно отключает LLM, SMTP и загрузку сайтов, делает настройки read-only и заполняет пустую базу демо-данными при старте. Порт берётся из `PORT`, который задаёт платформа.
+
+### Онлайн-демо без сервера
+
+`scripts/build_web_demo.sh` собирает интерфейс с `VITE_STATIC_DEMO=1` и кладёт рядом `backend.zip` (пакет `salespilot` и нужные модули Harvey, ~60 КБ). В браузере `frontend/src/staticDemo.ts` загружает Pyodide 0.27.7 с jsDelivr, ставит закреплённые версии FastAPI/Starlette/python-multipart/httpx, распаковывает backend и вызывает настоящее FastAPI-приложение через ASGI в памяти. Запросы интерфейса (`fetch`) подменяются этим вызовом; потоков в WebAssembly нет, поэтому синхронные обработчики выполняются напрямую. База SQLite хранится в IndexedDB (своя у каждого посетителя), синхронизации идут по очереди. Маршрутизация на хэшах (`#/leads`), так как GitHub Pages отдаёт только статику. Публикует workflow `.github/workflows/pages.yml`.
