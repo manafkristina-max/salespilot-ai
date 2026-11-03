@@ -134,6 +134,21 @@ export type SettingsResponse = {
   env: { llm_provider: string; live_research_enabled: boolean; live_sending_enabled: boolean; smtp_configured: boolean; public_demo: boolean };
 };
 
+export type Availability = { available: boolean; reason: string };
+export type AgentCaps = {
+  mode: "demo" | "live"; public_demo: boolean;
+  sources: { demo: Availability; wikidata: Availability; domains: Availability };
+  research: Availability; brain: Availability & { provider: string }; running_job: number | null;
+};
+export type JobEvent = { id: number; ts: string; agent: string; level: "info" | "success" | "warn" | "error"; company: string; message: string };
+export type Job = {
+  id: number; campaign_id: number; status: "queued" | "running" | "done" | "error" | "cancelled" | "interrupted";
+  params: { source: string; limit: number; domains: string[]; write: boolean };
+  progress_done: number; progress_total: number; error: string;
+  summary: { found?: number; researched?: number; qualified?: number; disqualified?: number; drafted?: number; errors?: number };
+  created_at: string; started_at: string | null; finished_at: string | null; events?: JobEvent[];
+};
+
 export class ApiError extends Error {
   status: number;
   constructor(message: string, status: number) { super(message); this.status = status; }
@@ -210,5 +225,10 @@ export const api = {
   putSetting: (key: string, value: unknown) => request<{ value: unknown }>("PUT", `/api/settings/${key}`, value),
   health: () => request<{ ok: boolean; mode: "demo" | "live"; public_demo: boolean }>("GET", "/api/health"),
   resetDemo: () => request<{ message: string }>("POST", "/api/demo/reset"),
+  agentCaps: () => request<AgentCaps>("GET", "/api/agent/capabilities"),
+  startAgent: (cid: number, b: { source: string; limit: number; domains: string; write: boolean }) => request<Job>("POST", `/api/campaigns/${cid}/agent`, b),
+  campaignJobs: (cid: number) => request<Job[]>("GET", `/api/campaigns/${cid}/jobs`),
+  job: (id: number, after = 0) => request<Job>("GET", `/api/jobs/${id}?after=${after}`),
+  cancelJob: (id: number) => request<Job>("POST", `/api/jobs/${id}/cancel`),
   runs: (agent = "") => request<AgentRun[]>("GET", `/api/agent-runs${qs({ agent })}`),
 };

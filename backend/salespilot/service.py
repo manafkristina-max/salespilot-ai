@@ -68,6 +68,19 @@ class SalesPilot:
     def __init__(self, db: Database, env: Settings):
         self.db, self.env = db, env
         self.settings = SettingsStore(db)
+        from .brain import ClaudeBrain
+        from .jobs import JobRunner
+        self.brain = ClaudeBrain(model=env.claude_model)
+        if env.allow_vpn_fake_ip and not env.public_demo:
+            from .harvey_adapter import allow_vpn_fake_ip
+            allow_vpn_fake_ip()
+        self.jobs = JobRunner(self)
+        if env.start_mode in ("demo", "live") and not env.public_demo:
+            self.settings.set("mode", env.start_mode)
+
+    @property
+    def brain_enabled(self) -> bool:
+        return self.mode == "live" and self.env.llm_provider == "claude_cli"
 
     # ------------------------------------------------------------ logging
 
@@ -101,6 +114,8 @@ class SalesPilot:
         """Wipe all data and recreate the demo campaign. Demo mode only."""
         if self.mode != "demo":
             raise ServiceError("Сброс данных доступен только в демо-режиме", 409)
+        if self.jobs.active_job_id():
+            raise ServiceError("Агент сейчас работает: остановите запуск перед сбросом", 409)
         with self.db.tx() as c:
             for table in ("campaigns", "companies", "agent_runs", "settings"):
                 c.execute(f"DELETE FROM {table}")  # leads, facts, emails… cascade
@@ -412,31 +427,17 @@ class SalesPilot:
             return False, "нет публичного сайта"
         return True, ""
 
-    def research_company(self, company_id: int, campaign_id=None, lead_id=None) -> dict:
+    def research_company(self, company_id: int, campaign_id=None, lead_id=None, log=None) -> dict:
         company = self.get_company_row(company_id)
         live, why = self.can_research_live(company)
+        log = log or (lambda msg: None)
         with self.agent_run("research", campaign_id, lead_id, provider="website" if live else "demo") as run:
             if company["is_demo"]:
                 n = self.db.scalar("SELECT COUNT(*) FROM facts WHERE company_id=?", (company_id,))
                 run["message"] = f"{company['name']}: демо-данные, {n} фактов из датасета, сетевых запросов нет"
                 run["details"] = {"facts": n, "mode": "demo"}
             elif live:
-                result = providers.research_website(company["website"])
-                ts = now()
-                added = 0
-                existing = {r["text"] for r in self.db.query("SELECT text FROM facts WHERE company_id=?", (company_id,))}
-                for f in result["facts"]:
-                    if f["text"] in existing:
-                        continue
-                    self._insert_fact(company_id, {**f, "source_url": result["final_url"],
-                                                   "source_label": "Главная страница сайта"},
-                                      verification="verified", note="Получено с сайта при исследовании",
-                                      created_by="research_agent", checked_at=ts)
-                    added += 1
-                tech = sorted(set(company["tech"]) | set(result["tech"]))
-                self.db.execute("UPDATE companies SET tech_json=? WHERE id=?", (dumps(tech), company_id))
-                run["message"] = f"{company['name']}: сайт прочитан, новых фактов {added}, стек: {', '.join(tech) or '—'}"
-                run["details"] = {"facts_added": added, "tech": tech, "mode": "live"}
+                run["details"] = self._research_live(company, run, log)
             else:
                 run["status"] = "skipped"
                 run["message"] = (f"{company['name']}: исследование сайта недоступно ({why}). "
@@ -446,6 +447,68 @@ class SalesPilot:
         if lead_id:
             self._advance(lead_id, "researched")
         return {"status": run["status"], "message": run["message"]}
+
+    PAGE_LABELS = {"home": "Главная страница", "catalog": "Каталог", "where_to_buy": "Где купить",
+                   "about": "О компании", "careers": "Вакансии"}
+
+    def _research_live(self, company: dict, run: dict, log) -> dict:
+        from .brain import BrainUnavailable
+        from . import live as live_mod
+        log(f"Читаю сайт {company['domain'] or company['website']}…")
+        site = live_mod.read_site(company["website"], log)
+        pages = site["pages"]
+        log(f"Прочитано страниц: {len(pages)} ({', '.join(self.PAGE_LABELS.get(p['kind'], p['kind']) for p in pages)})"
+            + (f"; технологии: {', '.join(site['tech'])}" if site["tech"] else ""))
+        extracted, source = None, "rules"
+        brain_state = self.brain.status() if self.brain_enabled else None
+        if brain_state and not brain_state["available"]:
+            log(f"⚠ {brain_state['reason']}. Факты извлекаю правилами")
+        if brain_state and brain_state["available"]:
+            log("Claude анализирует страницы: боли, сигналы спроса, каналы продаж…")
+            try:
+                extracted = self.brain.extract_facts(company, pages, self._icp_for(company), self.settings.get("products"))
+                source = "claude"
+                if extracted["dropped"]:
+                    log(f"Отброшено фактов без точной цитаты со страницы: {extracted['dropped']}")
+            except BrainUnavailable as exc:
+                log(f"⚠ {exc}. Использую правила вместо Claude")
+        facts = extracted["facts"] if extracted else live_mod.rule_facts(pages)
+        ts = now()
+        existing = {r["text"] for r in self.db.query("SELECT text FROM facts WHERE company_id=?", (company["id"],))}
+        kinds = {p["url"]: p["kind"] for p in pages}
+        added = 0
+        for f in facts:
+            if f["text"] in existing:
+                continue
+            label = self.PAGE_LABELS.get(kinds.get(f["source_url"], ""), "Страница сайта")
+            self._insert_fact(company["id"], {**f, "source_label": label}, verification="verified",
+                              note="Цитата найдена на странице при исследовании" if source == "claude"
+                              else "Фрагмент найден на странице при исследовании",
+                              created_by=source, checked_at=ts)
+            added += 1
+        updates = {"tech_json": dumps(sorted(set(company["tech"]) | set(site["tech"])))}
+        if extracted:
+            if extracted["company_type"] and not company["company_type"]:
+                updates["company_type"] = extracted["company_type"]
+            if extracted["sku_count"] and not company["sku_count"]:
+                updates["sku_count"] = extracted["sku_count"]
+            if extracted["summary"] and not company["description"]:
+                updates["description"] = extracted["summary"]
+        if company["source"] == "domain" and site["title"]:
+            clean = re.split(r"\s[|—–-]\s", site["title"])[0].strip()
+            if 2 <= len(clean) <= 80 and not self.find_duplicate(clean, ""):
+                updates["name"], updates["name_key"] = clean, name_key(clean)
+        sets = ", ".join(f"{k}=?" for k in updates)
+        self.db.execute(f"UPDATE companies SET {sets} WHERE id=?", (*updates.values(), company["id"]))
+        log(f"Новых фактов с цитатами: {added}" + (" (Claude)" if source == "claude" else " (правила)"))
+        run["message"] = f"{company['name']}: страниц {len(pages)}, новых фактов {added} ({source})"
+        run["provider"] = "claude+website" if source == "claude" else "website"
+        return {"facts_added": added, "pages": [p["url"] for p in pages], "tech": site["tech"], "source": source}
+
+    def _icp_for(self, company: dict) -> dict:
+        row = self.db.one("SELECT c.icp_json FROM campaigns c JOIN leads l ON l.campaign_id=c.id "
+                          "WHERE l.company_id=? ORDER BY l.id DESC LIMIT 1", (company["id"],))
+        return loads(row["icp_json"], {}) if row else {}
 
     def verify_fact(self, fact_id: int) -> dict:
         fact = self.db.one("SELECT * FROM facts WHERE id=?", (fact_id,))
@@ -568,7 +631,7 @@ class SalesPilot:
         sender = self.settings.get("sender")
         brief = {"company": company, "product": product, "facts": facts, "contact": contact,
                  "rationale": "", "signature": sender.get("signature", "")}
-        llm = providers.get_llm(self.env, self.mode)
+        llm = providers.get_llm(self.env, self.mode, self.brain if self.env.llm_provider == "claude_cli" else None)
         warnings = []
         with self.agent_run("writer", lead["campaign_id"], lead_id, provider=llm.name) as run:
             try:
@@ -576,7 +639,7 @@ class SalesPilot:
             except Exception as exc:
                 if not llm.is_live:
                     raise
-                warnings.append(f"Внешняя языковая модель недоступна ({type(exc).__name__}), письмо написано по шаблону")
+                warnings.append(f"Языковая модель недоступна ({exc if str(exc) else type(exc).__name__}), письмо написано по шаблону")
                 out = providers.MockLLM().write_email(brief)
             by_id = {f["id"]: f for f in facts}
             claims = [{"n": i + 1, "fact_id": fid, "text": by_id[fid]["text"], "source_url": by_id[fid]["source_url"],
@@ -943,12 +1006,17 @@ class SalesPilot:
     def _agent_provider(self, agent: str) -> str:
         live = self.mode == "live"
         if agent == "scout":
-            return "Демо-датасет · CSV · вручную"
+            return ("Wikidata · ваши сайты · CSV" if live and self.env.live_discovery_enabled
+                    else "Демо-датасет · CSV · вручную")
         if agent == "research":
-            return "Сайты компаний" if live and self.env.live_research_enabled else "Демо-факты · ручной ввод"
+            if live and self.env.live_research_enabled:
+                return "Сайты компаний + Claude" if self.brain_enabled else "Сайты компаний (правила)"
+            return "Демо-факты · ручной ввод"
         if agent in ("qualifier", "sales"):
             return "Правила (детерминированно)"
         if agent == "writer":
+            if self.brain_enabled:
+                return "Claude (подписка Claude Code)"
             return "Anthropic API" if live and self.env.llm_provider == "anthropic" and self.env.anthropic_configured \
                 else "Шаблоны писем"
         if agent == "sender":
@@ -967,6 +1035,15 @@ class SalesPilot:
              "detail": ("Anthropic API настроен" + ("" if live else " (работает только в рабочем режиме)"))
              if e.llm_provider == "anthropic" and e.anthropic_configured
              else "Письма пишутся по шаблонам. Чтобы подключить модель: LLM_PROVIDER=anthropic и ANTHROPIC_API_KEY в .env (платно)"},
+            {"id": "claude", "name": "Claude через подписку Claude Code",
+             "status": ("connected" if self.brain.status()["available"] else "error")
+             if e.llm_provider == "claude_cli" else "disabled",
+             "detail": self.brain.status()["reason"] if e.llm_provider == "claude_cli"
+             else "Выключено. Включается командой ./start.sh --live (LLM_PROVIDER=claude_cli)"},
+            {"id": "wikidata", "name": "Поиск компаний в Wikidata",
+             "status": "connected" if e.live_discovery_enabled else "disabled",
+             "detail": "Открытая база Wikidata: реальные компании с официальными сайтами"
+             + ("" if e.live_discovery_enabled else ". Выключено: включается командой ./start.sh --live")},
             {"id": "research", "name": "Исследование сайтов",
              "status": "connected" if e.live_research_enabled else "disabled",
              "detail": "Загрузка публичных страниц через SSRF-защищённый клиент Harvey"
@@ -976,8 +1053,7 @@ class SalesPilot:
              + ("; реальная отправка разрешена" if e.live_sending_enabled else "; LIVE_SENDING_ENABLED=false")},
             {"id": "inbox", "name": "Входящие (IMAP/Gmail)", "status": "not_configured",
              "detail": "Не реализовано в MVP: ответы добавляются вручную и классифицируются Reply Handler"},
-            {"id": "discovery", "name": "Источник поиска компаний", "status": "not_configured",
-             "detail": "Внешний поиск не подключён. Доступно: демо-датасет, CSV, ручное добавление"},
+
         ]
 
     # ------------------------------------------------------------ export

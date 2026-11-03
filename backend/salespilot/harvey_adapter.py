@@ -63,6 +63,41 @@ except Exception as exc:  # pragma: no cover - exercised only without vendor/
         pass
 
 
+_FAKE_IP_NET = "198.18.0.0/15"
+_fake_ip_allowed = False
+
+
+def allow_vpn_fake_ip() -> None:
+    """Let Harvey's public-website client accept 198.18.0.0/15 (opt-in).
+
+    VPN clients in "fake-IP"/TUN mode (Happ, Clash, sing-box…) answer every DNS
+    lookup with an address from this benchmarking range and tunnel the
+    connection to the real host, so behind such a VPN every website looks
+    non-public to Harvey and research is impossible. Only this one range is let
+    through; loopback, private, link-local and other special-use addresses stay
+    blocked. Enabled by SALESPILOT_ALLOW_VPN_FAKE_IP (start.sh --live sets it
+    only when it detects such a VPN). Vendored Harvey files are not modified.
+    """
+    global _fake_ip_allowed
+    if _fake_ip_allowed or not HARVEY_AVAILABLE:
+        return
+    import ipaddress
+    from harvey import public_http as _ph
+    original = _ph._public_address
+    net = ipaddress.ip_network(_FAKE_IP_NET)
+
+    def _public_or_vpn_fake_ip(value: str) -> str:
+        try:
+            if ipaddress.ip_address(value) in net:
+                return value
+        except ValueError:
+            pass
+        return original(value)
+
+    _ph._public_address = _public_or_vpn_fake_ip
+    _fake_ip_allowed = True
+
+
 def harvey_status() -> dict:
     return {
         "available": HARVEY_AVAILABLE,

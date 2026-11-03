@@ -54,6 +54,13 @@ class Settings:
     live_sending_enabled: bool = field(default_factory=lambda: _bool("LIVE_SENDING_ENABLED", False))
     # Live research = fetching public company websites (free, no API key).
     live_research_enabled: bool = field(default_factory=lambda: _bool("LIVE_RESEARCH_ENABLED", False))
+    # Live discovery = finding real companies in Wikidata (open data, free).
+    live_discovery_enabled: bool = field(default_factory=lambda: _bool("LIVE_DISCOVERY_ENABLED", False))
+    # Mode to switch to on startup (start.sh --live sets "live").
+    start_mode: str = field(default_factory=lambda: os.getenv("SALESPILOT_MODE", "").strip().lower())
+    claude_model: str = field(default_factory=lambda: os.getenv("CLAUDE_MODEL", "").strip())
+    # Research behind a fake-IP VPN (see harvey_adapter.allow_vpn_fake_ip). Off by default.
+    allow_vpn_fake_ip: bool = field(default_factory=lambda: _bool("SALESPILOT_ALLOW_VPN_FAKE_IP", False))
 
     def __post_init__(self):
         if self.public_demo:
@@ -62,6 +69,8 @@ class Settings:
             self.smtp_host = self.smtp_user = self.smtp_password = self.smtp_from = ""
             self.live_sending_enabled = False
             self.live_research_enabled = False
+            self.live_discovery_enabled = False
+            self.start_mode = "demo"
             self.seed_on_start = True
 
     @property

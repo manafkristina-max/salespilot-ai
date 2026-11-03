@@ -119,9 +119,23 @@ class AnthropicLLM:
                 "provider": self.name}
 
 
-def get_llm(settings: Settings, mode: str) -> LLMProvider:
+class ClaudeLLM:
+    """Writer on Claude through the operator's Claude Code subscription (see brain.py)."""
+
+    name, is_live = "claude", True
+
+    def __init__(self, brain):
+        self.brain = brain
+
+    def write_email(self, brief: dict) -> dict:
+        return self.brain.write_email(brief)
+
+
+def get_llm(settings: Settings, mode: str, brain=None) -> LLMProvider:
     if mode == "live" and settings.llm_provider == "anthropic" and settings.anthropic_configured:
         return AnthropicLLM(settings.anthropic_api_key, settings.anthropic_model)
+    if mode == "live" and settings.llm_provider == "claude_cli" and brain is not None and brain.status()["available"]:
+        return ClaudeLLM(brain)
     return MockLLM()
 
 
@@ -188,7 +202,9 @@ EXTRA_FINGERPRINTS = {
 
 SIGNAL_PATTERNS = [
     ("info", r"где купить|where to buy", "На сайте есть раздел «Где купить»"),
-    ("info", r"ozon|wildberries|яндекс\s*маркет|amazon", "Сайт упоминает присутствие на маркетплейсах"),
+    ("info", r"ozon|wildberries|яндекс\s*маркет|amazon|маркетплейс", "Сайт упоминает присутствие на маркетплейсах"),
+    ("info", r"интернет-магазин|online store|купить онлайн|в корзину", "У компании есть собственный интернет-магазин"),
+    ("info", r"сеть (салонов|магазинов|бутиков)|\d+\s+(магазин|салон|бутик)", "У компании есть розничная сеть"),
     ("signal", r"ваканси|careers|карьера", "На сайте есть раздел вакансий"),
     ("info", r"каталог|catalog", "На сайте есть каталог товаров"),
     ("info", r"дилер|dealer|партн[её]р", "Сайт упоминает дилерскую/партнёрскую сеть"),

@@ -4,19 +4,22 @@
 #   ./start.sh            запустить (данные сохраняются между запусками)
 #   ./start.sh --demo     то же, а при пустой базе сначала создать демо-кампанию
 #   ./start.sh --reset    сохранить текущую базу в data/backups/ и начать с чистого демо
+#   ./start.sh --live     настоящий агент: поиск компаний в Wikidata, чтение их сайтов,
+#                         анализ и письма через Claude (ваша подписка Claude Code)
 #   ./start.sh --no-open  не открывать браузер автоматически
 #
 # Порт: SALESPILOT_PORT=8010 ./start.sh   Остановка: Ctrl+C
 set -euo pipefail
 cd "$(dirname "$0")"
 
-DEMO=0; RESET=0; OPEN=1
+DEMO=0; RESET=0; OPEN=1; LIVE=0
 for arg in "$@"; do
   case "$arg" in
     --demo) DEMO=1 ;;
     --reset) RESET=1; DEMO=1 ;;
     --no-open) OPEN=0 ;;
-    -h|--help) sed -n 2,9p "$0"; exit 0 ;;
+    --live) LIVE=1 ;;
+    -h|--help) sed -n 2,11p "$0"; exit 0 ;;
     *) echo "Неизвестный параметр: $arg (см. ./start.sh --help)"; exit 2 ;;
   esac
 done
@@ -88,6 +91,23 @@ if [ "$DEMO" = 1 ] && [ ! -f "$DB" ]; then
     echo "✗ Не удалось создать демо-данные (ошибка выше). База не создана, можно запустить повторно."
     exit 1
   fi
+fi
+
+if [ "$LIVE" = 1 ]; then
+  export SALESPILOT_MODE=live LIVE_DISCOVERY_ENABLED=true LIVE_RESEARCH_ENABLED=true LLM_PROVIDER=claude_cli
+  # A VPN in fake-IP/TUN mode (Happ, Clash, sing-box…) resolves every site to 198.18.x.x,
+  # which the SSRF guard blocks. Allow only that range, and only when it is really in use.
+  if backend/.venv/bin/python -c 'import socket,sys; sys.exit(0 if socket.gethostbyname("wikidata.org").startswith(("198.18.","198.19.")) else 1)' 2>/dev/null; then
+    export SALESPILOT_ALLOW_VPN_FAKE_IP=true
+    echo "→ Обнаружен VPN с подменой DNS (адреса 198.18.x.x): разрешаю только этот диапазон для чтения сайтов."
+  fi
+  if command -v claude >/dev/null; then
+    echo "→ Рабочий режим: Wikidata + чтение сайтов + Claude (подписка Claude Code)."
+    echo "  Если Claude попросит вход, выполните в терминале: claude"
+  else
+    echo "→ Рабочий режим без Claude: claude не найден, факты и письма — по правилам и шаблонам."
+  fi
+  echo "  Реальные письма не отправляются: только черновики на вашу проверку."
 fi
 
 echo ""

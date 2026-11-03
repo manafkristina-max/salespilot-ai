@@ -143,6 +143,30 @@ CREATE TABLE IF NOT EXISTS agent_runs (
     duration_ms INTEGER
 );
 CREATE INDEX IF NOT EXISTS ix_agent_runs_agent ON agent_runs(agent, id);
+CREATE TABLE IF NOT EXISTS agent_jobs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    campaign_id INTEGER REFERENCES campaigns(id) ON DELETE CASCADE,
+    status TEXT NOT NULL,
+    params_json TEXT NOT NULL DEFAULT '{}',
+    progress_done INTEGER NOT NULL DEFAULT 0,
+    progress_total INTEGER NOT NULL DEFAULT 0,
+    summary_json TEXT NOT NULL DEFAULT '{}',
+    error TEXT NOT NULL DEFAULT '',
+    cancel_requested INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    started_at TEXT,
+    finished_at TEXT
+);
+CREATE TABLE IF NOT EXISTS job_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id INTEGER NOT NULL REFERENCES agent_jobs(id) ON DELETE CASCADE,
+    ts TEXT NOT NULL,
+    agent TEXT NOT NULL,
+    level TEXT NOT NULL DEFAULT 'info',
+    company TEXT NOT NULL DEFAULT '',
+    message TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_job_events_job ON job_events(job_id, id);
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
     value_json TEXT NOT NULL

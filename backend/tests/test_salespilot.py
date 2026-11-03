@@ -313,3 +313,151 @@ def test_demo_reset_restores_clean_demo(client):
 def test_demo_reset_refused_in_live_mode(client):
     client.put("/api/settings/mode", json="live")
     assert client.post("/api/demo/reset").status_code == 409
+
+
+# ---------------------------------------------------------------- live agent
+
+def live_client(tmp_path, monkeypatch, brain_ok=True):
+    from salespilot import brain as brain_mod, live
+    s = Settings()
+    s.db_path = tmp_path / "live.db"
+    s.llm_provider, s.live_research_enabled, s.live_discovery_enabled, s.start_mode = "claude_cli", True, True, "live"
+    s.live_sending_enabled = False
+    pages = {"https://brand-primer-test.ru/": "Бренд Пример: 2 500 товаров в каталоге. Карточки на маркетплейсах обновляем вручную. Где купить: 30 магазинов.",
+             "https://brand-primer-test.ru/careers": "Ищем контент-менеджера маркетплейсов в команду e-commerce."}
+
+    def fake_discover(icp, limit, log, exclude_domains=None):
+        log("Отправляю запрос в Wikidata…")
+        return [{"name": "Бренд Пример", "website": "https://brand-primer-test.ru", "domain": "brand-primer-test.ru",
+                 "industry": "Электроника", "country": "Россия", "employees": 400,
+                 "description": "Отрасль по Wikidata: electronics", "wikidata_url": "https://www.wikidata.org/wiki/Q1"}]
+
+    def fake_read(website, log):
+        return {"pages": [{"url": u, "kind": "home" if u.endswith("/") else "careers", "text": t} for u, t in pages.items()],
+                "tech": ["1C-Bitrix"], "title": "Бренд Пример — официальный сайт", "final_url": website}
+
+    monkeypatch.setattr(live, "discover_wikidata", fake_discover)
+    monkeypatch.setattr(live, "read_site", fake_read)
+    monkeypatch.setattr(brain_mod.ClaudeBrain, "status",
+                        lambda self, refresh=False: {"available": brain_ok, "reason": "ok" if brain_ok else "нужен вход"})
+
+    def fake_call_json(self, prompt):
+        if "Ответь строго JSON без пояснений" in prompt:  # extract_facts
+            return {"facts": [
+                {"kind": "pain", "text": "Карточки на маркетплейсах обновляются вручную",
+                 "quote": "Карточки на маркетплейсах обновляем вручную", "url": "https://brand-primer-test.ru/"},
+                {"kind": "signal", "text": "Нанимают контент-менеджера маркетплейсов",
+                 "quote": "Ищем контент-менеджера маркетплейсов", "url": "https://brand-primer-test.ru/careers"},
+                {"kind": "info", "text": "Выдуманный факт", "quote": "этой фразы на сайте нет вообще", "url": "https://brand-primer-test.ru/"},
+            ], "company_type": "Бренд-производитель", "sku_count": 2500, "sku_quote": "2 500 товаров в каталоге",
+                "summary": "Бренд электроники"}
+        ids = [int(x) for x in __import__("re").findall(r"\[(\d+)\]", prompt)[:2]]
+        return {"subject": "Карточки на маркетплейсах", "body": "Здравствуйте! Видим, что карточки обновляются вручную [1].",
+                "used_fact_ids": ids}
+
+    monkeypatch.setattr(brain_mod.ClaudeBrain, "call_json", fake_call_json)
+    return TestClient(create_app(s, Database(s.db_path)))
+
+
+def test_agent_job_demo_source_runs_pipeline_with_log(client):
+    c = campaign(client)
+    sp = client.app.state.sp
+    job = sp.jobs.start(c["id"], {"source": "demo"}, background=False)
+    assert job["status"] == "done" and job["progress_total"] == job["progress_done"] > 0
+    msgs = [e["message"] for e in job["events"]]
+    assert any("Соответствие ICP" in m for m in msgs) and any("Черновик готов" in m for m in msgs)
+    assert job["summary"]["drafted"] >= 1
+    assert client.get(f"/api/jobs/{job['id']}?after={job['events'][-1]['id']}").json()["events"] == []
+
+
+def test_live_sources_refused_in_demo_mode(client):
+    c = campaign(client)
+    r = client.post(f"/api/campaigns/{c['id']}/agent", json={"source": "wikidata"})
+    assert r.status_code == 409 and "start.sh --live" in r.json()["detail"]
+    caps = client.get("/api/agent/capabilities").json()
+    assert caps["sources"]["demo"]["available"] and not caps["sources"]["wikidata"]["available"]
+
+
+def test_live_agent_wikidata_research_with_claude(tmp_path, monkeypatch):
+    client = live_client(tmp_path, monkeypatch)
+    c = campaign(client)
+    job = client.app.state.sp.jobs.start(c["id"], {"source": "wikidata", "limit": 3}, background=False)
+    assert job["status"] == "done", job
+    co = client.get("/api/companies?search=Бренд").json()[0]
+    assert not co["is_demo"] and co["source"] == "wikidata"
+    detail = client.get(f"/api/companies/{co['id']}").json()
+    facts = {f["text"]: f for f in detail["facts"]}
+    assert "Выдуманный факт" not in facts  # quote not on the page → dropped
+    pain = facts["Карточки на маркетплейсах обновляются вручную"]
+    assert pain["verification"] == "verified" and pain["created_by"] == "claude" and pain["source_url"].startswith("https://brand")
+    assert detail["company_type"] == "Бренд-производитель" and detail["sku_count"] == 2500
+    assert detail["contacts"] == []
+    emails = client.get("/api/emails").json()
+    assert emails and emails[0]["provider"] == "claude" and emails[0]["status"] == "draft"
+    assert any("Отброшено фактов без точной цитаты" in e["message"] for e in job["events"])
+
+
+def test_live_agent_falls_back_to_rules_when_claude_unavailable(tmp_path, monkeypatch):
+    client = live_client(tmp_path, monkeypatch, brain_ok=False)
+    c = campaign(client)
+    job = client.app.state.sp.jobs.start(c["id"], {"source": "domains", "domains": "brand-primer-test.ru"},
+                                         background=False)
+    assert job["status"] == "done"
+    co = client.get("/api/companies?search=Бренд").json()[0]  # renamed from the page title
+    assert co["name"] == "Бренд Пример"
+    facts = client.get(f"/api/companies/{co['id']}").json()["facts"]
+    assert facts and all(f["created_by"] == "rules" for f in facts)
+
+
+def test_validate_facts_requires_literal_quotes():
+    from salespilot.brain import validate_facts
+    pages = [{"url": "https://x.example.org/", "text": "Мы продаём 1 200 SKU через Ozon и Wildberries"}]
+    r = validate_facts({"facts": [
+        {"kind": "info", "text": "Продают на маркетплейсах", "quote": "через Ozon и Wildberries", "url": "https://x.example.org/"},
+        {"kind": "pain", "text": "Нет PIM", "quote": "у нас нет системы PIM", "url": "https://x.example.org/"},
+    ], "sku_count": 999, "sku_quote": "999 товаров"}, pages)
+    assert [f["text"] for f in r["facts"]] == ["Продают на маркетплейсах"] and r["dropped"] == 1
+    assert r["sku_count"] is None
+
+
+def test_claude_auth_error_is_reported_in_russian(monkeypatch):
+    import json as _json
+    import subprocess
+    from salespilot import brain as brain_mod
+    b = brain_mod.ClaudeBrain()
+    monkeypatch.setattr(b, "status", lambda refresh=False: {"available": True, "reason": ""})
+    monkeypatch.setattr(brain_mod.claude_runtime, "check_cli", lambda env=None: "/usr/bin/claude")
+    out = _json.dumps({"type": "result", "is_error": True, "result": "Failed to authenticate: OAuth session expired"})
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 1, out.encode(), b""))
+    with pytest.raises(brain_mod.BrainUnavailable, match="нужен вход"):
+        b.call("ping")
+
+
+def test_vpn_fake_ip_exception_is_narrow():
+    import subprocess
+    code = (
+        "import sys; sys.path.insert(0, '.')\n"
+        "from salespilot import harvey_adapter as h\n"
+        "from harvey import public_http as ph\n"
+        "def ok(ip):\n"
+        "    try: ph._public_address(ip); return True\n"
+        "    except ValueError: return False\n"
+        "before = ok('198.18.97.184')\n"
+        "h.allow_vpn_fake_ip()\n"
+        "print(before, ok('198.18.97.184'), ok('198.19.0.5'), ok('127.0.0.1'), ok('10.0.0.1'),"
+        " ok('192.168.1.1'), ok('169.254.169.254'), ok('198.20.0.1'), ok('8.8.8.8'))\n")
+    out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True,
+                         cwd=Path(__file__).resolve().parents[1]).stdout.split()
+    # off by default; on: only 198.18.0.0/15 is added, everything else unchanged
+    # 198.20.0.1 and 8.8.8.8 are ordinary public addresses, always allowed
+    assert out == ["False", "True", "True", "False", "False", "False", "False", "True", "True"]
+
+
+def test_demo_agent_rerun_walks_existing_leads(client):
+    c = campaign(client)
+    sp = client.app.state.sp
+    sp.jobs.start(c["id"], {"source": "demo"}, background=False)
+    again = sp.jobs.start(c["id"], {"source": "demo"}, background=False)
+    assert again["status"] == "done" and again["summary"]["found"] > 0
+    assert any("заново прохожу" in e["message"] for e in again["events"])
+    assert again["summary"]["drafted"] == 0  # existing drafts are not duplicated

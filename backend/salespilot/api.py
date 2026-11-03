@@ -122,6 +122,13 @@ class DraftIn(BaseModel):
     force: bool = False
 
 
+class AgentIn(BaseModel):
+    source: Literal["demo", "wikidata", "domains"] = "demo"
+    limit: int = Field(5, ge=1, le=25)
+    domains: str = Field("", max_length=5000)
+    write: bool = True
+
+
 def create_app(settings: Settings | None = None, db: Database | None = None) -> FastAPI:
     settings = settings or get_settings()
     db = db or Database(settings.db_path)
@@ -352,6 +359,26 @@ def create_app(settings: Settings | None = None, db: Database | None = None) -> 
             raise ServiceError("Порог должен быть целым числом от 0 до 100")
         sp.settings.set(key, value)
         return {"key": key, "value": sp.settings.get(key)}
+
+    @app.get("/api/agent/capabilities")
+    def agent_caps():
+        return sp.jobs.capabilities()
+
+    @app.post("/api/campaigns/{cid}/agent", status_code=202)
+    def agent_start(cid: int, body: AgentIn):
+        return sp.jobs.start(cid, body.model_dump())
+
+    @app.get("/api/campaigns/{cid}/jobs")
+    def agent_jobs(cid: int):
+        return sp.jobs.list(cid)
+
+    @app.get("/api/jobs/{jid}")
+    def job(jid: int, after: int = 0):
+        return sp.jobs.get(jid, after)
+
+    @app.post("/api/jobs/{jid}/cancel")
+    def job_cancel(jid: int):
+        return sp.jobs.cancel(jid)
 
     @app.post("/api/demo/reset")
     def demo_reset():

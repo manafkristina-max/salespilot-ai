@@ -1,7 +1,8 @@
-import { ArrowLeft, Play, Search, Trash2, Upload } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeft, Play, RefreshCw, Trash2, Upload } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, ICP } from "../api";
+import { AgentLive, StartAgentModal } from "../components/AgentRunner";
 import { IcpEditor } from "../components/IcpEditor";
 import { ImportCsvModal } from "./Leads";
 import { Button, Card, DemoBadge, Empty, ErrorState, PageHeader, ScorePill, Spinner, StageBadge, useAsync, useToast } from "../components/ui";
@@ -13,10 +14,13 @@ export default function CampaignDetail() {
   const [icp, setIcp] = useState<ICP | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [agentOpen, setAgentOpen] = useState(false);
+  const [jobId, setJobId] = useState<number | null>(null);
   const toast = useToast();
   const nav = useNavigate();
 
   useEffect(() => { if (data) setIcp(data.icp); }, [data]);
+  const onAgentFinished = useCallback(() => reload(), [reload]);
 
   if (loading && !data) return <Spinner />;
   if (error) return <ErrorState error={error} retry={reload} />;
@@ -34,13 +38,16 @@ export default function CampaignDetail() {
       <PageHeader title={c.name} subtitle={c.description}
         actions={<>
           <Button icon={<Upload className="h-4 w-4" />} onClick={() => setImportOpen(true)}>Импорт CSV</Button>
-          <Button icon={<Search className="h-4 w-4" />} loading={busy === "scout"} onClick={() => act("scout", async () => (await api.scout(id)).message)}>Найти компании (демо)</Button>
-          <Button variant="primary" icon={<Play className="h-4 w-4" />} loading={busy === "run"} disabled={!c.leads?.length}
+          <Button icon={<RefreshCw className="h-4 w-4" />} loading={busy === "run"} disabled={!c.leads?.length} title="Пересчитать оценки и подбор продукта по текущему ICP"
             onClick={() => act("run", async () => {
               const r = await api.runPipeline(id);
-              return `Исследовано ${r.researched}, квалифицировано ${r.qualified}, не подходят ${r.disqualified}, черновиков ${r.drafted}` + (r.errors.length ? `. Ошибок: ${r.errors.length}` : "");
-            })}>Запустить агентов</Button>
+              return `Пересчитано: подходят ${r.qualified}, не подходят ${r.disqualified}, новых черновиков ${r.drafted}` + (r.errors.length ? `. Ошибок: ${r.errors.length}` : "");
+            })}>Переоценить лиды</Button>
+          <Button variant="primary" icon={<Play className="h-4 w-4" />} onClick={() => setAgentOpen(true)}>Запустить агента</Button>
         </>} />
+
+      <AgentLive campaignId={id} jobId={jobId} onFinished={onAgentFinished} />
+      <StartAgentModal open={agentOpen} onClose={() => setAgentOpen(false)} campaignId={id} onStarted={(j) => setJobId(j.id)} />
 
       <Card title="Профиль идеального клиента (ICP)" className="mb-4"
         actions={dirty ? <><Button size="sm" variant="ghost" onClick={() => setIcp(c.icp)}>Отменить</Button>
@@ -54,7 +61,7 @@ export default function CampaignDetail() {
           await api.deleteCampaign(id); toast("success", "Кампания удалена"); nav("/campaigns");
         }}>Удалить</Button>}>
         {!c.leads?.length ? (
-          <Empty title="В кампании нет лидов" hint="Запустите поиск по демо-датасету, импортируйте CSV или добавьте компании на странице «Поиск лидов»." />
+          <Empty title="В кампании нет лидов" hint="Нажмите «Запустить агента»: он найдёт компании в Wikidata, изучит ваши сайты или возьмёт демо-датасет. Можно также импортировать CSV." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
