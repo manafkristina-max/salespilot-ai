@@ -7,6 +7,7 @@
 
 [**Кейс-презентация**](https://manafkristina-max.github.io/salespilot-ai/) · [Product case (CASE_STUDY)](CASE_STUDY.md) · [Архитектура](ARCHITECTURE.md) · [Demo script](DEMO_SCRIPT.md)
 
+[![CI](https://github.com/manafkristina-max/salespilot-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/manafkristina-max/salespilot-ai/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -62,6 +63,8 @@ UI с hot reload: `cd frontend && npm run dev` (порт 5173, `/api` прокс
 cd backend && .venv/bin/python -m pytest -q    # 20 сценариев end-to-end через HTTP API
 cd frontend && npm run typecheck
 ```
+
+Те же проверки запускаются в GitHub Actions на каждый push.
 
 </details>
 
